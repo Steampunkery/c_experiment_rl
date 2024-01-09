@@ -1,0 +1,27 @@
+Overview:
+---------
+This roguelike is a passion project of mine that has been through many
+iterations in many programming languages. Currently, it is written in C,
+using Flecs, GLib, Uncursed, and my Dijkstra Map library.
+
+Dependencies:
+-------------
+To build this project, you'll need the following shared libraries:
+
+1. GLib >= 2.72.4
+2. Uncursed from NetHack4
+
+Building:
+---------
+Once you have these dependencies, simply use the makefile to build the
+project. The following targets are supported:
+
+default, roguelike: the whole project
+flecs: build only flecs
+dijkstra: build only the dijkstra lib
+clean: delete object files
+
+Tests:
+------
+Currently only the Dijkstra Map library has a test. It can be found in the
+lib/test directory
