@@ -26,7 +26,6 @@ void register_systems(ecs_world_t *world) {
             { .id = ecs_id(Position) },
             { .id = ecs_id(Glyph) },
             { .id = ecs_id(Renderable) },
-            { .id = ecs_id(Invisible), .oper = EcsOptional },
         },
         .run = Render
     });
