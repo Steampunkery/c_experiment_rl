@@ -4,6 +4,7 @@
 #include "map.h"
 #include "render.h"
 #include "log.h"
+#include "item.h"
 
 ecs_entity_t render;
 

@@ -18,7 +18,8 @@ _DEPS = rogue.h \
 		gui.h \
 		religion.h \
 		log.h \
-		observer.h
+		observer.h \
+		item.h
 
 _LIBDEPS = flecs.h \
 		   dijkstra.h
@@ -38,7 +39,8 @@ _OBJ =  main.o \
 		input.o \
 		religion.o \
 		log.o \
-		observer.o
+		observer.o \
+		item.o
 
 _LIBOBJ = flecs.o \
 		  dijkstra.o

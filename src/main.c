@@ -18,6 +18,7 @@
 #include "ai.h"
 #include "gui.h"
 #include "log.h"
+#include "item.h"
 
 CommandType get_command(KeyInfo *key);
 void temp_arena_init(ecs_world_t *world);

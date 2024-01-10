@@ -1,7 +1,6 @@
 #pragma once
 #include "flecs.h"
 
-typedef int wchar_t;
 typedef struct _GArray GArray;
 typedef enum { Floor = 0, Wall } TileType;
 typedef struct Position MovementAction;
@@ -22,7 +21,5 @@ void destroy_map(Map *map);
 void *new_grid(int rows, int cols, size_t size, void *val);
 void destroy_grid(void *grid);
 
-ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, char *name);
-ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y);
-ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y);
+int map_contains(Map *map, int x, int y);
 bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov);
