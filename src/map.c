@@ -116,8 +116,7 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
 }
 
 ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, char *name) {
-    ecs_entity_t item =
-        ecs_entity_init(world, &(ecs_entity_desc_t){});
+    ecs_entity_t item = ecs_new(world, 0);
     ecs_set(world, item, Glyph, { glyph });
     ecs_set(world, item, Item, { name });
     ecs_set(world, item, Renderable, { true });
