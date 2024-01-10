@@ -5,11 +5,11 @@ typedef struct Religious Religious;
 typedef struct Position Position;
 typedef struct ecs_world_t ecs_world_t;
 
-typedef enum { BOONTYPE_ABILITY, BOONTYPE_ITEM } BoonType;
+enum boon_type { BOONTYPE_ABILITY, BOONTYPE_ITEM };
 
 typedef struct Boon {
     char name[NAME_LEN_MAX];
-    BoonType type;
+    enum boon_type type;
 } Boon;
 
 typedef struct AbilityBoon {
