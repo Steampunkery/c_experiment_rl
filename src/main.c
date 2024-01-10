@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
                 bool should_consume_turn = frame->consumes_turn && resp == SuccessCommand;
 
                 gui_stack->frames = g_slist_remove_link(gui_stack->frames, last);
+                g_slist_free_1(last);
 
                 if (!gui_stack->frames) {
                     state = should_consume_turn ? RunSystems : TakeInput;
@@ -141,6 +142,8 @@ done:
     destroy_map(map);
     ecs_fini(world);
 uncursed_done:
+    delwin(basewin);
+    delwin(logwin);
     endwin();
 
     return 0;

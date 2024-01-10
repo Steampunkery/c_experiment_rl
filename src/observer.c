@@ -50,6 +50,8 @@ void ToggleSeeInvisible(ecs_world_t *world, bool toggle) {
             renderable->should_render = toggle;
         }
     }
+
+    ecs_filter_fini(f);
 }
 
 void AddSeeInvisible(ecs_iter_t *it) {

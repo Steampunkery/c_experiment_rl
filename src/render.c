@@ -30,6 +30,7 @@ void Render(ecs_iter_t *it) {
             g_string_append_c(map_str, tiletype_to_wchar[map->grid[i][j]]);
 
     mvwaddstr(basewin, 0, 0, map_str->str);
+    g_string_free(map_str, TRUE);
 
     while (ecs_query_next(it)) {
         Position *pos = ecs_field(it, Position, 1);
