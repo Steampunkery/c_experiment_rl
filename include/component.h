@@ -2,6 +2,7 @@
 #include "flecs.h"
 #include "religion.h"
 #include "rogue.h"
+#include "item.h"
 
 typedef int wchar_t;
 
@@ -20,10 +21,6 @@ extern ECS_COMPONENT_DECLARE(Renderable);
 
 extern ECS_TAG_DECLARE(Invisible);
 extern ecs_entity_t MyTurn;
-
-typedef struct Item {
-    char *name;
-} Item;
 
 typedef struct Position {
     int x, y;

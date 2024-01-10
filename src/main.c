@@ -184,18 +184,33 @@ void temp_arena_init(ecs_world_t *world) {
     ecs_entity_t goblin3 = init_goblin(world, 40, 22);
     make_invisible(world, goblin3);
 
-    ecs_entity_t item1 = create_item(world, '1', "Item 1");
+    ecs_entity_t item1 = create_item(world, '$', &(GoldItem) {
+            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .amount = 300,
+    }, sizeof(GoldItem));
     place_item(world, item1, 18, 18);
 
-    ecs_entity_t item1a = create_item(world, 'a', "Item 1a");
+    ecs_entity_t item1a = create_item(world, 'a', &(FoodItem) {
+            .super = { ITEM_TYPE_FOOD, "Apple" },
+            .satiation = 42,
+    }, sizeof(FoodItem));
     place_item(world, item1a, 18, 18);
 
-    ecs_entity_t item2 = create_item(world, '2', "Item 2");
+    ecs_entity_t item2 = create_item(world, 'o', &(FoodItem) {
+            .super = { ITEM_TYPE_FOOD, "Orange" },
+            .satiation = 42,
+    }, sizeof(FoodItem));
     place_item(world, item2, 18, 19);
 
-    ecs_entity_t item3 = create_item(world, '3', "Item 3");
+    ecs_entity_t item3 = create_item(world, 'b', &(FoodItem) {
+            .super = { ITEM_TYPE_FOOD, "Banana" },
+            .satiation = 42,
+    }, sizeof(FoodItem));
     place_item(world, item3, 18, 20);
 
-    ecs_entity_t item4 = create_item(world, '4', "Item 4");
+    ecs_entity_t item4 = create_item(world, 'k', &(FoodItem) {
+            .super = { ITEM_TYPE_FOOD, "Kiwi" },
+            .satiation = 42,
+    }, sizeof(FoodItem));
     place_item(world, item4, 18, 21);
 }

@@ -54,11 +54,12 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
     return e;
 }
 
-ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, char *name) {
+ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const void *data, size_t size) {
     ecs_entity_t item = ecs_new(world, 0);
     ecs_set(world, item, Glyph, { glyph });
-    ecs_set(world, item, Item, { name });
     ecs_set(world, item, Renderable, { true });
+
+    ecs_set_id(world, item, ecs_id(Item), size, data);
 
     return item;
 }
