@@ -1,5 +1,6 @@
 #pragma once
 #include "rogue.h"
+#include "item.h"
 
 typedef struct Religious Religious;
 typedef struct Position Position;
@@ -20,7 +21,8 @@ typedef struct AbilityBoon {
 
 typedef struct ItemBoon {
     Boon super;
-    char item_name[NAME_LEN_MAX];
+    Item *item;
+    size_t size;
 } ItemBoon;
 
 typedef struct Religion {
@@ -29,7 +31,7 @@ typedef struct Religion {
     char follower_title[NAME_LEN_MAX];
     unsigned int num_followers;
     Boon *boons[3];
-    unsigned char boon_idx;
+    uint8_t boon_idx;
     // TODO: Put more fields in here
 } Religion;
 

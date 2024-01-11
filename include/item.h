@@ -13,9 +13,13 @@ typedef struct Item {
     char *name;
 } Item;
 
+extern char item_type_to_glyph[];
+extern Item mjolnir;
+
 ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, size_t size);
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y);
 ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y);
+char get_item_type_glyph(enum item_type item);
 
 typedef struct GoldItem {
     Item super;

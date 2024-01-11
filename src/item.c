@@ -5,6 +5,18 @@
 #include "map.h"
 #include "component.h"
 
+char item_type_to_glyph[] = {
+    [ITEM_TYPE_FOOD] = '%',
+    [ITEM_TYPE_GOLD] = '$',
+    [ITEM_TYPE_WEAPON] = '/',
+};
+
+// TODO: Make this a true weapon subtype
+Item mjolnir = {
+    .type = ITEM_TYPE_WEAPON,
+    .name = "Mjolnir",
+};
+
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
     Map *map = ecs_singleton_get_mut(world, Map);
 
@@ -62,4 +74,8 @@ ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, si
     ecs_set_id(world, item, ecs_id(Item), size, data);
 
     return item;
+}
+
+char get_item_type_glyph(enum item_type item) {
+    return item_type_to_glyph[item];
 }

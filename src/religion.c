@@ -26,12 +26,13 @@ ItemBoon IB_Mjolnir = {
         .name = "The Warhammer Mjolnir",
         .type = BOONTYPE_ITEM,
     },
-    .item_name = "Mjolnir",
+    .item = &mjolnir,
+    .size = sizeof(mjolnir),
 };
 
 // Add a follower to a given religion
 void add_follower(ecs_world_t *world, Religion *religion, ecs_entity_t e) {
-    ecs_set(world, e, Religious, { religion, 1 });
+    ecs_set(world, e, Religious, { religion, 3 });
     religion->num_followers++;
 }
 
@@ -65,5 +66,6 @@ void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e) {
 }
 
 void bestow_item(ecs_world_t *world, ItemBoon *boon, const Position *pos) {
-
+    ecs_entity_t item = create_item(world, get_item_type_glyph(boon->item->type), boon->item, boon->size);
+    place_item(world, item, pos->x, pos->y);
 }

@@ -92,7 +92,8 @@ void Prayer(ecs_iter_t *it) {
             }
         } else {
             rel = ecs_get_mut(it->world, it->entities[i], Religious);
-            if (rel->favors_left > 0) {
+            Religion *r = rel->religion;
+            if (rel->favors_left > 0 && r->boons[r->boon_idx]) {
                 bestow_boon(it->world, rel, it->entities[i]);
             } else {
                 if (it->entities[i] == g_player_id) {
