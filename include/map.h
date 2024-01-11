@@ -21,5 +21,6 @@ void destroy_map(Map *map);
 void *new_grid(int rows, int cols, size_t size, void *val);
 void destroy_grid(void *grid);
 
-int map_contains(Map *map, int x, int y);
+bool is_passable(const Map *map, int x, int y);
+int map_contains(const Map *map, int x, int y);
 bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov);

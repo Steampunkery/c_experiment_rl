@@ -62,18 +62,23 @@ void destroy_grid(void *grid) {
     free(grid);
 }
 
-int map_contains(Map *map, int x, int y) {
+int map_contains(const Map *map, int x, int y) {
     return x >= 0 && y >= 0 && x < map->cols && y < map->rows;
 }
 
+// TODO: Replace this with checking bit flags
+bool is_passable(const Map *map, int x, int y) {
+    return map->grid[y][x] != Wall;
+}
+
 bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov) {
-    Map *map = ecs_singleton_get_mut(world, Map);
+    const Map *map = ecs_singleton_get(world, Map);
     const Position *pos = ecs_get(world, e, Position);
     int new_x = pos->x + mov->x;
     int new_y = pos->y + mov->y;
 
     if (!map_contains(map, new_x, new_y)) return 0;
-    if (map->grid[new_y][new_x] == Wall) return 0;
+    if (!is_passable(map, new_x, new_y)) return 0;
 
     return 1;
 }
