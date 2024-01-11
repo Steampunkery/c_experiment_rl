@@ -21,7 +21,7 @@
 #include "item.h"
 
 CommandType get_command(KeyInfo *key);
-void temp_arena_init(ecs_world_t *world);
+void temp_arena_init(ecs_world_t *world, Map *map);
 
 static ecs_world_t *world;
 ecs_entity_t g_player_id;
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     GuiStack *gui_stack = ecs_singleton_get_mut(world, GuiStack);
     gui_stack->frames = NULL;
 
-    temp_arena_init(world);
+    temp_arena_init(world, map);
 
     // Put state variables here.
     // TODO!: Make these into a struct
@@ -95,6 +95,7 @@ int main(int argc, char **argv) {
 
                 break;
             case RunSystems:
+                update_dijkstra_maps(world, map);
                 ecs_run(world, ecs_id(AI), 0.0, NULL);
                 ecs_run(world, ecs_id(Move), 0.0, NULL);
                 ecs_run(world, ecs_id(Pickup), 0.0, NULL);
@@ -179,28 +180,47 @@ CommandType get_command(KeyInfo *key) {
     }
 }
 
-void temp_arena_init(ecs_world_t *world) {
+void temp_arena_init(ecs_world_t *world, Map *map) {
     g_player_id = init_player(world);
 
     ecs_entity_t goblin1 = init_goblin(world, 40, 20);
 
     ecs_entity_t goblin2 = init_goblin(world, 40, 21);
-    ecs_set(world, goblin2, AIController, { left_walker });
+    ecs_set(world, goblin2, AIController, { left_walker, NULL });
 
     ecs_entity_t goblin3 = init_goblin(world, 40, 22);
+    ecs_set(world, goblin3, AIController, { greedy_ai, map });
     make_invisible(world, goblin3);
 
-    ecs_entity_t item1 = create_item(world, '$', &(GoldItem) {
+    ecs_entity_t gold1 = create_item(world, '$', &(GoldItem) {
             .super = { ITEM_TYPE_GOLD, "Gold" },
             .amount = 300,
     }, sizeof(GoldItem));
-    place_item(world, item1, 18, 18);
+    place_item(world, gold1, 1, 1);
 
-    ecs_entity_t item1a = create_item(world, 'a', &(FoodItem) {
+    ecs_entity_t gold2 = create_item(world, '$', &(GoldItem) {
+            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .amount = 300,
+    }, sizeof(GoldItem));
+    place_item(world, gold2, map->cols-2, 1);
+
+    ecs_entity_t gold3 = create_item(world, '$', &(GoldItem) {
+            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .amount = 300,
+    }, sizeof(GoldItem));
+    place_item(world, gold3, map->cols-2, map->rows-2);
+
+    ecs_entity_t gold4 = create_item(world, '$', &(GoldItem) {
+            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .amount = 300,
+    }, sizeof(GoldItem));
+    place_item(world, gold4, 1, map->rows-2);
+
+    ecs_entity_t item1 = create_item(world, 'a', &(FoodItem) {
             .super = { ITEM_TYPE_FOOD, "Apple" },
             .satiation = 42,
     }, sizeof(FoodItem));
-    place_item(world, item1a, 18, 18);
+    place_item(world, item1, 18, 18);
 
     ecs_entity_t item2 = create_item(world, 'o', &(FoodItem) {
             .super = { ITEM_TYPE_FOOD, "Orange" },

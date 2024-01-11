@@ -10,6 +10,7 @@
 
 ECS_COMPONENT_DECLARE(Map);
 
+static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap);
 static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits);
 
 char tiletype_to_wchar[] = {
@@ -99,6 +100,46 @@ bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov
     if (!is_passable(map, new_x, new_y)) return 0;
 
     return 1;
+}
+
+/*
+ * TODO: Consider separating dijkstra maps by type (mob, item, etc) then
+ * having a system to handle each type of map. Using filters in a switch
+ * this way feels like a hack.
+ */
+void update_dijkstra_maps(ecs_world_t *world, Map *map) {
+    for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++) {
+        switch (map->dijkstra_maps[i].type) {
+            case DM_TYPE_Item:
+                update_dijkstra_item_map(world, map, map->dijkstra_maps + i);
+                break;
+        }
+    }
+}
+
+static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap) {
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {
+            { ecs_id(Item) },
+            { ecs_id(Position) },
+        }
+    });
+
+    uint32_t n_sources = 0;
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    while (ecs_filter_next(&it)) {
+        Item *item = ecs_field(&it, Item, 1);
+        Position *pos = ecs_field(&it, Position, 2);
+
+        for (int i = 0; i < it.count; i ++)
+            if (item[i].type == dm_wrap->subtype)
+                map->dijkstra_sources[n_sources++] = pos[i].x + pos[i].y * map->cols;
+    }
+
+    destroy_dijkstra_map((DijkstraMap *) dm_wrap);
+    build_dijkstra_map((DijkstraMap *) dm_wrap, map->cols, map->rows, map->dijkstra_sources, n_sources);
+
+    ecs_filter_fini(f);
 }
 
 static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits) {
