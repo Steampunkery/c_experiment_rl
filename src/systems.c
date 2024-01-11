@@ -46,7 +46,7 @@ void AI(ecs_iter_t *it) {
     AIController *aic = ecs_field(it, AIController, 1);
 
     for (int i = 0; i < it->count; i++) {
-        aic[i].ai_func(it->world, it->entities[i], NULL);
+        aic[i].ai_func(it->world, it->entities[i], aic[i].state);
     }
 }
 

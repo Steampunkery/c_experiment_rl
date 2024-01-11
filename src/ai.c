@@ -1,3 +1,5 @@
+#include "ai.h"
+
 #include "flecs.h"
 #include "component.h"
 #include "monster.h"

@@ -3,6 +3,7 @@
 #include "religion.h"
 #include "rogue.h"
 #include "item.h"
+#include "ai.h"
 
 typedef int wchar_t;
 
@@ -36,10 +37,6 @@ typedef struct Inventory {
     int capacity;
     ecs_entity_t items[INVENTORY_MAX];
 } Inventory;
-
-typedef struct AIController {
-    void (*ai_func)(ecs_world_t *world, ecs_entity_t e, void *arg);
-} AIController;
 
 typedef struct Glyph {
     wchar_t c;

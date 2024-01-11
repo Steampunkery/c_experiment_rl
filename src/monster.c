@@ -8,7 +8,7 @@ ecs_entity_t init_goblin(ecs_world_t *world, int x, int y) {
     ecs_set(world, goblin, Position, { x, y });
     ecs_set(world, goblin, Glyph, {'g'});
     ecs_set(world, goblin, Renderable, { true });
-    ecs_set(world, goblin, AIController, {do_nothing});
+    ecs_set(world, goblin, AIController, { do_nothing, NULL });
     ecs_add_id(world, goblin, MyTurn);
 
     return goblin;
