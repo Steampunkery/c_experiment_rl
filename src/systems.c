@@ -94,6 +94,11 @@ void Prayer(ecs_iter_t *it) {
             rel = ecs_get_mut(it->world, it->entities[i], Religious);
             if (rel->favors_left > 0) {
                 bestow_boon(it->world, rel, it->entities[i]);
+            } else {
+                if (it->entities[i] == g_player_id) {
+                    Logger *l = ecs_singleton_get_mut(it->world, Logger);
+                    log_msg(l, "%s is indifferent to your plea", rel->religion->deity_name);
+                }
             }
         }
         ecs_remove(it->world, it->entities[i], PrayerAction);
