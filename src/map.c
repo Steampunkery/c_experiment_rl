@@ -1,5 +1,6 @@
 #include "map.h"
 #include "component.h"
+#include "rogue.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,8 @@
 #include <glib.h>
 
 ECS_COMPONENT_DECLARE(Map);
+
+static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits);
 
 char tiletype_to_wchar[] = {
     [Floor] = '.',
@@ -28,6 +31,17 @@ Map *new_arena(Map *map, int rows, int cols) {
     GArray *init = NULL;
     map->items = (GArray ***) new_grid(rows, cols, sizeof(**map->items), &init);
 
+    map->dijkstra_sources = malloc(sizeof(*map->dijkstra_sources) * rows * cols);
+    map->dijkstra_maps[0] = (DMWrapper) {
+        .dm = { 0 },
+        .type = DM_TYPE_Item,
+        .subtype = ITEM_TYPE_GOLD,
+    };
+
+    // TODO: Investigate whether different successor functions would be useful
+    for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++)
+        set_successor_fn((DijkstraMap *) &map->dijkstra_maps[i], successors8, map);
+
     return map;
 }
 
@@ -40,6 +54,10 @@ void destroy_map(Map *map) {
 
     destroy_grid(map->items);
     destroy_grid(map->grid);
+
+    free(map->dijkstra_sources);
+    for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++)
+        destroy_dijkstra_map((DijkstraMap *) &map->dijkstra_maps[i]);
 }
 
 /* Returns a two dimensional array of size rows * cols initialized to val */
@@ -81,4 +99,24 @@ bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov
     if (!is_passable(map, new_x, new_y)) return 0;
 
     return 1;
+}
+
+static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits) {
+    static successor_t all[8];
+    const Map *map = state;
+
+    *n_exits = 0;
+    for (int i = 0; i < 8; i++) {
+        int x = idx % map->cols + X_DIRS[i];
+        int y = idx / map->cols + Y_DIRS[i];
+
+        if (!map_contains(map, x, y)) continue;
+        if (!is_passable(map, x, y)) continue;
+
+        all[*n_exits].idx = (int) idx + X_DIRS[i] + Y_DIRS[i] * map->cols;
+        all[*n_exits].cost = i > 3 ? 1.4f : 1.0f;
+        (*n_exits)++;
+    }
+
+    *exits = all;
 }

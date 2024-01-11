@@ -13,6 +13,9 @@ extern char *idx_to_alpha;
 #define alpha_to_idx(c) ((c) < 97 ? (c) - 39 : (c) - 97)
 #define is_alpha(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 
+extern int X_DIRS[8];
+extern int Y_DIRS[8];
+
 typedef uint64_t ecs_entity_t;
 extern ecs_entity_t g_player_id;
 

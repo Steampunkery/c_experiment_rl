@@ -27,6 +27,9 @@ static ecs_world_t *world;
 ecs_entity_t g_player_id;
 char *idx_to_alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+int X_DIRS[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
+int Y_DIRS[] = { 0, 1, 0, -1, 1, 1, -1, -1 };
+
 int main(int argc, char **argv) {
     // raise(SIGSTOP);
     initialize_uncursed(&argc, argv);
