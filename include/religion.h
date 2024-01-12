@@ -1,10 +1,11 @@
 #pragma once
 #include "rogue.h"
-#include "item.h"
+#include "stddef.h"
 
 typedef struct Religious Religious;
 typedef struct Position Position;
 typedef struct ecs_world_t ecs_world_t;
+typedef struct Item Item;
 
 enum boon_type { BOONTYPE_ABILITY, BOONTYPE_ITEM };
 
