@@ -21,7 +21,7 @@ typedef struct DMWrapper {
     int subtype; // Item type, Mob type, Player type(?)
 } DMWrapper;
 
-typedef struct {
+typedef struct Map {
     int rows, cols;
     TileType **grid;
     GArray ***items;

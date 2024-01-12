@@ -3,7 +3,6 @@
 #include "religion.h"
 #include "rogue.h"
 #include "item.h"
-#include "ai.h"
 
 typedef int wchar_t;
 
@@ -45,6 +44,11 @@ typedef struct Glyph {
 typedef struct Actor {
     int (*act)(ecs_world_t *world, ecs_entity_t *e);
 } Actor;
+
+typedef struct AIController {
+    void (*ai_func)(ecs_world_t *world, ecs_entity_t e, void *arg);
+    void *state;
+} AIController;
 
 typedef struct Religious {
     Religion *religion;

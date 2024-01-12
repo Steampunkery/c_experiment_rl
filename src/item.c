@@ -79,3 +79,22 @@ ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, si
 char get_item_type_glyph(enum item_type item) {
     return item_type_to_glyph[item];
 }
+
+ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type type, int x, int y) {
+    if (!map || !map_contains(map, x, y))
+        return 0;
+
+    GArray *items = map->items[y][x];
+    if (!items)
+        return 0;
+
+    ecs_entity_t e;
+    for (int i = 0; i < items->len; i++) {
+        e = g_array_index(items, ecs_entity_t, i);
+        const Item *item = ecs_get(world, e, Item);
+        if (item->type == type)
+            return e;
+    }
+
+    return 0;
+}

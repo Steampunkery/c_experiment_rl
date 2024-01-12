@@ -3,8 +3,6 @@
 #include "gui.h"
 #include "log.h"
 
-#include "flecs.h"
-
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Inventory);
 ECS_COMPONENT_DECLARE(MovementAction);

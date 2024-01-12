@@ -12,6 +12,8 @@
 extern char *idx_to_alpha;
 #define alpha_to_idx(c) ((c) < 97 ? (c) - 39 : (c) - 97)
 #define is_alpha(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+// TODO: Unify macro convention to be caps
+#define XY_TO_IDX(x, y, w) ((x) + (y)*(w))
 
 extern int X_DIRS[8];
 extern int Y_DIRS[8];
