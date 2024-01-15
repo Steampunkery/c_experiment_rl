@@ -83,6 +83,6 @@ char *items_to_menu_body(ecs_world_t *world, const void *args, int len, FilterFu
         g_string_append_printf(str, "(%c) %s\n", idx_to_alpha[i], item->name);
     }
 
-    return str->len ? g_string_free(str, false) : NULL;
+    return g_string_free(str, str->len < 1);
 }
 
