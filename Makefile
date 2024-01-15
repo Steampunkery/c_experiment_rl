@@ -2,9 +2,12 @@ IDIR=include
 ODIR=build
 LDIR=lib
 CC=gcc
-CFLAGS=-I$(IDIR) -I$(LDIR)/include -g3 $(shell pkg-config --cflags glib-2.0)
 
-LIBS=-luncursed $(shell pkg-config --libs glib-2.0)
+LIBS=flecs DijkstraMap
+ILIB=$(patsubst %,-I$(LDIR)/%/include,$(LIBS))
+CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0)
+
+LFLAGS=-luncursed $(shell pkg-config --libs glib-2.0)
 
 _DEPS = rogue.h \
 		component.h \
@@ -25,7 +28,8 @@ _LIBDEPS = flecs.h \
 		   dijkstra.h
 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS)) \
-	   $(patsubst %,$(LDIR)/include/%,$(_LIBDEPS))
+	   $(LDIR)/flecs/include/flecs.h \
+	   $(LDIR)/DijkstraMap/include/dijkstra.h
 
 _OBJ =  main.o \
 		component.o \
@@ -54,15 +58,18 @@ $(ODIR)/%.o: src/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 roguelike: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LFLAGS)
 
 flecs: $(ODIR)/flecs.o
 dijkstra: $(ODIR)/dijkstra.o
 
-$(ODIR)/%.o: $(LDIR)/src/%.c $(LDIR)/include/%.h
+$(ODIR)/flecs.o: $(LDIR)/flecs/src/flecs.c $(LDIR)/flecs/include/flecs.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-.PHONY: clean
+$(ODIR)/dijkstra.o: $(LDIR)/DijkstraMap/src/dijkstra.c $(LDIR)/DijkstraMap/include/dijkstra.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+.PHONY: clean flecs dijkstra default
 
 clean:
 	rm -f $(ODIR)/*.o *~ core $(IDIR)/*~ roguelike
