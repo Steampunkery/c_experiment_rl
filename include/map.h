@@ -30,6 +30,7 @@ typedef struct Map {
     // sources. This way it can be reused by every dijkstra map.
     size_t *dijkstra_sources;
     DMWrapper dijkstra_maps[NUM_DIJKSTRA_MAPS];
+    arena dm_arena;
 } Map;
 
 Map *new_arena(Map *map, int rows, int cols);

@@ -39,9 +39,14 @@ Map *new_arena(Map *map, int rows, int cols) {
         .subtype = ITEM_TYPE_GOLD,
     };
 
+    // TODO: Make a heuristic for arena size
+    int cap = 1<<28;
+    map->dm_arena.beg = malloc(cap);
+    map->dm_arena.end = map->dm_arena.beg + cap;
+
     // TODO: Investigate whether different successor functions would be useful
     for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++)
-        set_successor_fn((DijkstraMap *) &map->dijkstra_maps[i], successors8, map);
+        init_dijkstra_map((DijkstraMap *) &map->dijkstra_maps[i], rows, cols, successors8, map, &map->dm_arena);
 
     return map;
 }
@@ -57,8 +62,6 @@ void destroy_map(Map *map) {
     destroy_grid(map->grid);
 
     free(map->dijkstra_sources);
-    for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++)
-        destroy_dijkstra_map((DijkstraMap *) &map->dijkstra_maps[i]);
 }
 
 /* Returns a two dimensional array of size rows * cols initialized to val */
@@ -136,8 +139,7 @@ static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm
                 map->dijkstra_sources[n_sources++] = pos[i].x + pos[i].y * map->cols;
     }
 
-    destroy_dijkstra_map((DijkstraMap *) dm_wrap);
-    build_dijkstra_map((DijkstraMap *) dm_wrap, map->cols, map->rows, map->dijkstra_sources, n_sources);
+    build_dijkstra_map((DijkstraMap *) dm_wrap, map->dijkstra_sources, n_sources, &map->dm_arena);
 
     ecs_filter_fini(f);
 }
