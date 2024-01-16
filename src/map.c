@@ -135,7 +135,7 @@ static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm
         Position *pos = ecs_field(&it, Position, 2);
 
         for (int i = 0; i < it.count; i ++)
-            if (item[i].type == dm_wrap->subtype)
+            if ((int) item[i].type == dm_wrap->subtype)
                 map->dijkstra_sources[n_sources++] = pos[i].x + pos[i].y * map->cols;
     }
 

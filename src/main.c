@@ -154,9 +154,9 @@ uncursed_done:
 }
 
 CommandType get_command(KeyInfo *key) {
-    int ret;
     wint_t c;
-    ret = timeout_get_wch(10, &c);
+    int ret = timeout_get_wch(10, &c);
+
     key->status = ret;
     key->key = c;
     switch (ret) {
@@ -178,12 +178,15 @@ CommandType get_command(KeyInfo *key) {
         case ERR:
             return InvalidCommand;
     }
+
+    return InvalidCommand;
 }
 
 void temp_arena_init(ecs_world_t *world, Map *map) {
     g_player_id = init_player(world);
 
     ecs_entity_t goblin1 = init_goblin(world, 40, 20);
+    (void) goblin1;
 
     ecs_entity_t goblin2 = init_goblin(world, 40, 21);
     ecs_set(world, goblin2, AIController, { left_walker, NULL });

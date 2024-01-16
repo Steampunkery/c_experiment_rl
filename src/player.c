@@ -23,7 +23,6 @@ ecs_entity_t init_player(ecs_world_t *world) {
 
 // Returns a bool indicating if the player's turn is done
 bool process_player_input(ecs_world_t *world, KeyInfo key) {
-    int x, y;
     bool ret = false;
     switch (key.status) {
         case OK:
@@ -47,6 +46,8 @@ bool process_player_input(ecs_world_t *world, KeyInfo key) {
                 case PrayerInput:
                     ecs_set(world, g_player_id, PrayerAction, { '\0' });
                     ret = true;
+                    break;
+                case NotImplemented:
                     break;
             }
             break;

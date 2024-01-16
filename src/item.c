@@ -27,7 +27,7 @@ ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
     if (!items)
         items = map->items[y][x] = g_array_sized_new(FALSE, TRUE, sizeof(ecs_entity_t), 8);
 
-    int i;
+    guint i;
     for (i = 0; i < items->len; i++)
         if (g_array_index(items, ecs_entity_t, i) == 0) break;
 
@@ -49,7 +49,7 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
 
     GArray *items = map->items[y][x];
 
-    int i;
+    guint i;
     ecs_entity_t *item;
     for (i = 0; i < items->len; i++) {
         item = &g_array_index(items, ecs_entity_t, i);
@@ -89,7 +89,7 @@ ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type t
         return 0;
 
     ecs_entity_t e;
-    for (int i = 0; i < items->len; i++) {
+    for (guint i = 0; i < items->len; i++) {
         e = g_array_index(items, ecs_entity_t, i);
         const Item *item = ecs_get(world, e, Item);
         if (item->type == type)

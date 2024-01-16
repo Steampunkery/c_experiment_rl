@@ -5,7 +5,7 @@ CC=gcc
 
 LIBS=flecs DijkstraMap
 ILIB=$(patsubst %,-I$(LDIR)/%/include,$(LIBS))
-CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0)
+CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror
 
 LFLAGS=-luncursed $(shell pkg-config --libs glib-2.0)
 
