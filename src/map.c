@@ -48,6 +48,8 @@ Map *new_arena(Map *map, int rows, int cols) {
     for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++)
         init_dijkstra_map((DijkstraMap *) &map->dijkstra_maps[i], rows, cols, successors8, map, &map->dm_arena);
 
+    map->should_rebuild_str = true;
+
     return map;
 }
 
@@ -62,6 +64,22 @@ void destroy_map(Map *map) {
     destroy_grid(map->grid);
 
     free(map->dijkstra_sources);
+    free(map->str);
+}
+
+char *get_map_str(Map *map) {
+    if (!map->should_rebuild_str && map->str)
+        return map->str;
+
+    if (!map->str)
+        map->str = malloc(map->rows * map->cols * sizeof(*map->str));
+
+    for (int i = 0; i < map->rows; i++)
+        for (int j = 0; j < map->cols; j++)
+            map->str[XY_TO_IDX(j, i, map->cols)] = tiletype_to_wchar[map->grid[i][j]];
+    map->should_rebuild_str = false;
+
+    return map->str;
 }
 
 /* Returns a two dimensional array of size rows * cols initialized to val */

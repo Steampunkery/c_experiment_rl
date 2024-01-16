@@ -15,7 +15,7 @@ void render_gui_frame(gpointer item, gpointer win) {
 }
 
 void Render(ecs_iter_t *it) {
-    const Map *map = ecs_singleton_get(it->world, Map);
+    Map *map = ecs_singleton_get_mut(it->world, Map);
     const GuiStack *gs = ecs_singleton_get(it->world, GuiStack);
     const Logger *l = ecs_singleton_get(it->world, Logger);
 
@@ -29,13 +29,7 @@ void Render(ecs_iter_t *it) {
         mvwaddch(logwin, 0, i, ' ');
 
     // Map
-    GString *map_str = g_string_sized_new(map->rows*map->cols + 1);
-    for (int i = 0; i < map->rows; i++)
-        for (int j = 0; j < map->cols; j++)
-            g_string_append_c(map_str, tiletype_to_wchar[map->grid[i][j]]);
-
-    mvwaddstr(basewin, 0, 0, map_str->str);
-    g_string_free(map_str, TRUE);
+    mvwaddstr(basewin, 0, 0, get_map_str(map));
 
     // Entities
     while (ecs_query_next(it)) {

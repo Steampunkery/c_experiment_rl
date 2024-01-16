@@ -31,10 +31,14 @@ typedef struct Map {
     size_t *dijkstra_sources;
     DMWrapper dijkstra_maps[NUM_DIJKSTRA_MAPS];
     arena dm_arena;
+
+    char *str;
+    bool should_rebuild_str;
 } Map;
 
 Map *new_arena(Map *map, int rows, int cols);
 void destroy_map(Map *map);
+char *get_map_str(Map *map);
 
 void *new_grid(int rows, int cols, size_t size, void *val);
 void destroy_grid(void *grid);
