@@ -42,18 +42,22 @@ void register_components(ecs_world_t *world) {
     ECS_COMPONENT_DEFINE(world, Logger);
 }
 
-ecs_entity_t *inv_get_free_slot(Inventory *inv) {
-    int i;
-    for (i = 0; i < inv->capacity; i++)
-        if (inv->items[i] == 0) return &inv->items[i];
-
-    return NULL;
+bool inv_full(const Inventory *inv) {
+    return inv->end >= inv->capacity;
 }
 
-ecs_entity_t *inv_get_slot_of_item(Inventory *inv, ecs_entity_t e) {
-    int i;
-    for (i = 0; i < inv->capacity; i++)
-        if (inv->items[i] == e) return &inv->items[i];
+bool inv_insert(Inventory *inv, ecs_entity_t e) {
+    if (inv->end >= inv->capacity || !e) return false;
+    inv->items[inv->end++] = e;
+    return true;
+}
 
-    return NULL;
+bool inv_delete(Inventory *inv, ecs_entity_t e) {
+    for (int i = 0; i < inv->capacity; i++)
+        if (inv->items[i] == e) {
+            inv->items[i] = inv->items[--inv->end];
+            return true;
+        }
+
+    return false;
 }

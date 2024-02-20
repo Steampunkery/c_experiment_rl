@@ -13,7 +13,7 @@ ecs_entity_t init_player(ecs_world_t *world) {
     ecs_set(world, player, Position, {10, 10});
     ecs_set(world, player, Glyph, {'@'});
     ecs_set(world, player, Renderable, {true});
-    ecs_set(world, player, Inventory, { 10, {0} });
+    ecs_set(world, player, Inventory, { 10, 0, {0} });
     ecs_add_id(world, player, MyTurn);
 
     add_follower(world, &pastafarianism, player);
@@ -38,7 +38,7 @@ bool process_player_input(ecs_world_t *world, KeyInfo key) {
                     ret = true;
                     break;
                 case PickupInput:
-                    if (inv_get_free_slot(ecs_get_mut(world, g_player_id, Inventory))) {
+                    if (!inv_full(ecs_get(world, g_player_id, Inventory))) {
                         ecs_set(world, g_player_id, PickupAction, { 0 });
                         ret = true;
                     }

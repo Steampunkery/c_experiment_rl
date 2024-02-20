@@ -55,10 +55,11 @@ void Pickup(ecs_iter_t *it) {
     PickupAction *pa = ecs_field(it, PickupAction, 2);
     Position *pos = ecs_field(it, Position, 3);
 
-    ecs_entity_t *inv_slot;
     for (int i = 0; i < it->count; i++) {
-        if ((inv_slot = inv_get_free_slot(&inv[i])))
-            *inv_slot = pickup_item(it->world, pa[i].entity, pos[i].x, pos[i].y); // error handling here
+        if (!inv_full(&inv[i])) {
+            ecs_entity_t e = pickup_item(it->world, pa[i].entity, pos[i].x, pos[i].y);
+            inv_insert(&inv[i], e); // error handling here
+        }
         ecs_remove(it->world, it->entities[i], PickupAction);
     }
 }
@@ -68,12 +69,10 @@ void Drop(ecs_iter_t *it) {
     DropAction *da = ecs_field(it, DropAction, 2);
     Position *pos = ecs_field(it, Position, 3);
 
-    ecs_entity_t *inv_slot;
     for (int i = 0; i < it->count; i++) {
         assert(da[i].entity != 0);
         place_item(it->world, da[i].entity, pos[i].x, pos[i].y); // error handling here
-        if ((inv_slot = inv_get_slot_of_item(&inv[i], da[i].entity)))
-            *inv_slot = 0;
+        assert(inv_delete(&inv[i], da[i].entity));
         ecs_remove(it->world, it->entities[i], DropAction);
     }
 }

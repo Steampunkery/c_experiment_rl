@@ -40,7 +40,7 @@ bool drop_item_cb(ecs_world_t *world, const void *e) {
 CommandType inventory_cb(ecs_world_t *world, GuiFrame *gf, KeyInfo *key) {
     const Inventory *inv = ecs_get_id(world, g_player_id, ecs_id(Inventory));
     if (!gf->content) {
-        gf->content = items_to_menu_body(world, inv->items, inv->capacity, gf->filter);
+        gf->content = items_to_menu_body(world, inv->items, inv->end, gf->filter);
         if (!gf->content) return CancelCommand;
     }
 
@@ -53,8 +53,7 @@ CommandType inventory_cb(ecs_world_t *world, GuiFrame *gf, KeyInfo *key) {
             if (key->key == KEY_ESCAPE) ret = CancelCommand;
             else if (is_alpha(key->key) && gf->action) {
                 int idx = alpha_to_idx(key->key);
-                bool is_valid_choice = (idx < inv->capacity)
-                    && (inv->items[idx] != 0)
+                bool is_valid_choice = (idx < inv->end)
                     && (!gf->filter || gf->filter(world, &inv->items[idx]));
                 ret = is_valid_choice && gf->action(world, &inv->items[idx])
                     ? SuccessCommand : InvalidCommand;

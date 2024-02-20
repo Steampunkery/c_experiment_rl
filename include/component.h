@@ -34,6 +34,7 @@ typedef struct PickupAction {
 
 typedef struct Inventory {
     int capacity;
+    int end;
     ecs_entity_t items[INVENTORY_MAX];
 } Inventory;
 
@@ -68,5 +69,6 @@ typedef struct Renderable {
 } Renderable;
 
 void register_components(ecs_world_t *world);
-ecs_entity_t *inv_get_free_slot(Inventory *inv);
-ecs_entity_t *inv_get_slot_of_item(Inventory *inv, ecs_entity_t e);
+bool inv_full(const Inventory *inv);
+bool inv_insert(Inventory *inv, ecs_entity_t e);
+bool inv_delete(Inventory *inv, ecs_entity_t e);
