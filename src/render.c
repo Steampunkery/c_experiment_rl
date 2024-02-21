@@ -4,28 +4,23 @@
 #include "render.h"
 #include "gui.h"
 #include "log.h"
+#include "rlsmenu.h"
 
 #include <uncursed/uncursed.h>
-#include <glib.h>
 #include <assert.h>
-
-void render_gui_frame(gpointer item, gpointer win) {
-    GuiFrame *gf = item;
-    mvwaddstr((WINDOW *)win, gf->x, gf->y, gf->content);
-}
 
 void Render(ecs_iter_t *it) {
     Map *map = ecs_singleton_get_mut(it->world, Map);
-    const GuiStack *gs = ecs_singleton_get(it->world, GuiStack);
+    rlsmenu_gui *gui = ecs_singleton_get_mut(it->world, rlsmenu_gui);
     const Logger *l = ecs_singleton_get(it->world, Logger);
 
     WINDOW *basewin = ((WindowHolder *)it->param)->base;
     WINDOW *logwin = ((WindowHolder *)it->param)->log;
 
     // Logging
-    const char *message = get_last_log_msg(l);
-    mvwaddstr(logwin, 0, 0, message);
-    for (int i = strlen(message); i < MAX_LOG_MSG_LEN; i++)
+    const wchar_t *message = get_last_log_msg(l);
+    mvwaddwstr(logwin, 0, 0, message);
+    for (int i = wcslen(message); i < MAX_LOG_MSG_LEN; i++)
         mvwaddch(logwin, 0, i, ' ');
 
     // Map
@@ -44,7 +39,10 @@ void Render(ecs_iter_t *it) {
     }
 
     // GUI
-    g_slist_foreach(gs->frames, (GFunc)render_gui_frame, basewin);
+    rlsmenu_str str = rlsmenu_get_menu_str(gui);
+    if (str.str)
+        for(int i = 0; i < str.h; i++)
+            mvwaddwnstr(basewin, i, 0, str.str+i*str.w, str.w);
 
     wrefresh(basewin);
     wrefresh(logwin);

@@ -1,5 +1,6 @@
 #include "input.h"
 #include "component.h"
+#include "rlsmenu.h"
 #include <uncursed/uncursed.h>
 
 MovementAction input_to_movement[] = {
@@ -28,4 +29,38 @@ InputType get_input_type(KeyInfo *key) {
     }
 
     return NotImplemented;
+}
+
+enum rlsmenu_input translate_key(KeyInfo *key) {
+    if (key->key >= 'a' && key->key <= 'z') return key->key - 'a';
+    else if (key->key >= 'A' && key->key <= 'Z') return key->key - 'A';
+
+    switch (key->status) {
+        case OK:
+            switch (key->key) {
+                case '-':
+                    return RLSMENU_UP;
+                case '+':
+                    return RLSMENU_DN;
+                case '*':
+                    return RLSMENU_PGUP;
+                case '/':
+                    return RLSMENU_PGDN;
+                case 13: // Stupid libuncursed thing
+                    return RLSMENU_SEL;
+                default:
+                    return RLSMENU_INVALID_KEY;
+            }
+        case KEY_CODE_YES:
+            switch (key->key) {
+                case KEY_ENTER:
+                    return RLSMENU_SEL;
+                case KEY_ESCAPE:
+                    return RLSMENU_ESC;
+                default:
+                    return RLSMENU_INVALID_KEY;
+            }
+        default:
+            return RLSMENU_INVALID_KEY;
+    }
 }

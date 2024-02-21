@@ -4,9 +4,9 @@
 #include "log.h"
 
 Religion pastafarianism = {
-    .religion_name = "Pastafarianism",
-    .deity_name = "The Flying Spaghetti Monster",
-    .follower_title = "Pastafarian",
+    .religion_name = L"Pastafarianism",
+    .deity_name = L"The Flying Spaghetti Monster",
+    .follower_title = L"Pastafarian",
     .num_followers = 0,
     .boons = { &AB_SeeInvisible.super, &IB_Mjolnir.super, NULL },
     .boon_idx = 0,
@@ -14,7 +14,7 @@ Religion pastafarianism = {
 
 AbilityBoon AB_SeeInvisible = {
     .super = {
-        .name = "See Invisible",
+        .name = L"See Invisible",
         .type = BOONTYPE_ABILITY,
     },
     .ability_id = &ecs_id(SeeInvisible),
@@ -23,7 +23,7 @@ AbilityBoon AB_SeeInvisible = {
 
 ItemBoon IB_Mjolnir = {
     .super = {
-        .name = "The Warhammer Mjolnir",
+        .name = L"The Warhammer Mjolnir",
         .type = BOONTYPE_ITEM,
     },
     .item = &mjolnir,
@@ -53,7 +53,7 @@ void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e) {
 
     if (e == g_player_id) {
         Logger *l = ecs_singleton_get_mut(world, Logger);
-        log_msg(l, "%s grants you %s!", r->deity_name, boon->name);
+        log_msg(l, L"%S grants you %S!", r->deity_name, boon->name);
     }
 
     rel->favors_left--;

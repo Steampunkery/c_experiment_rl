@@ -3,8 +3,9 @@ ODIR=build
 LDIR=lib
 CC=gcc
 
-LIBS=flecs DijkstraMap
-ILIB=$(patsubst %,-I$(LDIR)/%/include,$(LIBS))
+ILIB=-I$(LDIR)/flecs/include
+ILIB:=$(ILIB) -I$(LDIR)/DijkstraMap/include
+ILIB:=$(ILIB) -I$(LDIR)/rlsmenu
 CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror
 
 LFLAGS=-luncursed $(shell pkg-config --libs glib-2.0)
@@ -24,12 +25,10 @@ _DEPS = rogue.h \
 		observer.h \
 		item.h
 
-_LIBDEPS = flecs.h \
-		   dijkstra.h
-
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS)) \
 	   $(LDIR)/flecs/include/flecs.h \
-	   $(LDIR)/DijkstraMap/include/dijkstra.h
+	   $(LDIR)/DijkstraMap/include/dijkstra.h \
+	   $(LDIR)/rlsmenu/rlsmenu.h
 
 _OBJ =  main.o \
 		component.o \
@@ -47,7 +46,8 @@ _OBJ =  main.o \
 		item.o
 
 _LIBOBJ = flecs.o \
-		  dijkstra.o
+		  dijkstra.o \
+		  rlsmenu.o
 
 OBJ = $(patsubst %,$(ODIR)/%,$(_LIBOBJ)) \
 	  $(patsubst %,$(ODIR)/%,$(_OBJ))
@@ -62,6 +62,7 @@ roguelike: $(OBJ)
 
 flecs: $(ODIR)/flecs.o
 dijkstra: $(ODIR)/dijkstra.o
+rlsmenu: $(ODIR)/rlsmenu.o
 
 $(ODIR)/flecs.o: $(LDIR)/flecs/src/flecs.c $(LDIR)/flecs/include/flecs.h
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -69,7 +70,10 @@ $(ODIR)/flecs.o: $(LDIR)/flecs/src/flecs.c $(LDIR)/flecs/include/flecs.h
 $(ODIR)/dijkstra.o: $(LDIR)/DijkstraMap/src/dijkstra.c $(LDIR)/DijkstraMap/include/dijkstra.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-.PHONY: clean flecs dijkstra default
+$(ODIR)/rlsmenu.o: $(LDIR)/rlsmenu/rlsmenu.c $(LDIR)/rlsmenu/rlsmenu.h
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+.PHONY: clean flecs dijkstra rlsmenu default
 
 clean:
 	rm -f $(ODIR)/*.o *~ core $(IDIR)/*~ roguelike

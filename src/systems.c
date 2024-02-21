@@ -83,7 +83,7 @@ void Prayer(ecs_iter_t *it) {
         if (!ecs_has_id(it->world, it->entities[i], ecs_id(Religious))) {
             if (it->entities[i] == g_player_id) {
                 Logger *l = ecs_singleton_get_mut(it->world, Logger);
-                log_msg(l, "Your supplication falls upon deaf ears");
+                log_msg(l, L"Your supplication falls upon deaf ears");
             }
         } else {
             rel = ecs_get_mut(it->world, it->entities[i], Religious);
@@ -93,7 +93,7 @@ void Prayer(ecs_iter_t *it) {
             } else {
                 if (it->entities[i] == g_player_id) {
                     Logger *l = ecs_singleton_get_mut(it->world, Logger);
-                    log_msg(l, "%s is indifferent to your plea", rel->religion->deity_name);
+                    log_msg(l, L"%S is indifferent to your plea", rel->religion->deity_name);
                 }
             }
         }

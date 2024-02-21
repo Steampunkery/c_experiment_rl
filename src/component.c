@@ -2,6 +2,7 @@
 #include "map.h"
 #include "gui.h"
 #include "log.h"
+#include "rlsmenu.h"
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Inventory);
@@ -38,7 +39,7 @@ void register_components(ecs_world_t *world) {
     MyTurn = ecs_new_id(world);
 
     ECS_COMPONENT_DEFINE(world, Map);
-    ECS_COMPONENT_DEFINE(world, GuiStack);
+    ECS_COMPONENT_DEFINE(world, rlsmenu_gui);
     ECS_COMPONENT_DEFINE(world, Logger);
 }
 

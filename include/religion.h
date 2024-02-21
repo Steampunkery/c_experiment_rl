@@ -10,7 +10,7 @@ typedef struct Item Item;
 enum boon_type { BOONTYPE_ABILITY, BOONTYPE_ITEM };
 
 typedef struct Boon {
-    char name[NAME_LEN_MAX];
+    wchar_t name[NAME_LEN_MAX];
     enum boon_type type;
 } Boon;
 
@@ -27,9 +27,9 @@ typedef struct ItemBoon {
 } ItemBoon;
 
 typedef struct Religion {
-    char religion_name[NAME_LEN_MAX];
-    char deity_name[NAME_LEN_MAX];
-    char follower_title[NAME_LEN_MAX];
+    wchar_t religion_name[NAME_LEN_MAX];
+    wchar_t deity_name[NAME_LEN_MAX];
+    wchar_t follower_title[NAME_LEN_MAX];
     unsigned int num_followers;
     Boon *boons[3];
     uint8_t boon_idx;

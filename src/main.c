@@ -19,13 +19,13 @@
 #include "gui.h"
 #include "log.h"
 #include "item.h"
+#include "rlsmenu.h"
 
 CommandType get_command(KeyInfo *key);
 void temp_arena_init(ecs_world_t *world, Map *map);
 
 static ecs_world_t *world;
 ecs_entity_t g_player_id;
-char *idx_to_alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 int X_DIRS[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 int Y_DIRS[] = { 0, 1, 0, -1, 1, 1, -1, -1 };
@@ -61,17 +61,16 @@ int main(int argc, char **argv) {
 
     Logger *logger = ecs_singleton_get_mut(world, Logger);
     init_logger(logger);
-    log_msg(logger, "Test Message");
+    log_msg(logger, L"Test Message");
 
-    GuiStack *gui_stack = ecs_singleton_get_mut(world, GuiStack);
-    gui_stack->frames = NULL;
+    rlsmenu_gui *gui = ecs_singleton_get_mut(world, rlsmenu_gui);
+    rlsmenu_gui_init(gui);
 
     temp_arena_init(world, map);
 
     // Put state variables here.
     // TODO!: Make these into a struct
     GameState state = TakeInput;
-    GuiFrame *curr_gui_frame = NULL;
     KeyInfo key;
     while (true) {
         ecs_run(world, render, 0.0, &game_windows);
@@ -108,42 +107,28 @@ int main(int argc, char **argv) {
                 int idx = alpha_to_idx(key.key);
                 assert(idx >= 0);
 
-                // TODO: Copy structs so more than one can
-                // exist in the stack at a time
-                gui_stack->frames = g_slist_append(gui_stack->frames, &gui_frames[idx]);
-                curr_gui_frame = &gui_frames[idx];
+                if (!gui_state[idx].prep_frame(&gui_state[idx], world)) {
+                    state = TakeInput;
+                    continue;
+                }
+                rlsmenu_gui_push(gui, gui_state[idx].frame);
 
                 state = GUI;
                 // FALLTHROUGH
             case GUI:
                 get_command(&key);
-                CommandType resp = curr_gui_frame->cb(world, curr_gui_frame, &key);
-
-                if (resp != CancelCommand && resp != SuccessCommand)
-                    break;
-
-                GSList *last = g_slist_last(gui_stack->frames);
-                assert(last);
-
-                GuiFrame *frame = last->data;
-                g_free(frame->content);
-                frame->content = NULL;
-                bool should_consume_turn = frame->consumes_turn && resp == SuccessCommand;
-
-                gui_stack->frames = g_slist_remove_link(gui_stack->frames, last);
-                g_slist_free_1(last);
-
-                if (!gui_stack->frames) {
-                    state = should_consume_turn ? RunSystems : TakeInput;
-                    curr_gui_frame = NULL;
-                    break;
+                enum rlsmenu_result res = rlsmenu_update(gui, translate_key(&key));
+                if (res == RLSMENU_DONE || res == RLSMENU_CANCELED) {
+                    FrameData *fd = rlsmenu_pop_return(gui);
+                    state = fd ?  (fd->consumes_turn ? RunSystems : TakeInput) : TakeInput;
                 }
-
+                break;
         }
     }
 
 done:
     destroy_map(map);
+    rlsmenu_gui_deinit(gui);
     ecs_fini(world);
 uncursed_done:
     delwin(basewin);
@@ -196,49 +181,49 @@ void temp_arena_init(ecs_world_t *world, Map *map) {
     make_invisible(world, goblin3);
 
     ecs_entity_t gold1 = create_item(world, '$', (Item *) &(GoldItem) {
-            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .super = { ITEM_TYPE_GOLD, L"Gold" },
             .amount = 300,
     }, sizeof(GoldItem));
     place_item(world, gold1, 1, 1);
 
     ecs_entity_t gold2 = create_item(world, '$', (Item *) &(GoldItem) {
-            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .super = { ITEM_TYPE_GOLD, L"Gold" },
             .amount = 300,
     }, sizeof(GoldItem));
     place_item(world, gold2, map->cols-2, 1);
 
     ecs_entity_t gold3 = create_item(world, '$', (Item *) &(GoldItem) {
-            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .super = { ITEM_TYPE_GOLD, L"Gold" },
             .amount = 300,
     }, sizeof(GoldItem));
     place_item(world, gold3, map->cols-2, map->rows-2);
 
     ecs_entity_t gold4 = create_item(world, '$', (Item *) &(GoldItem) {
-            .super = { ITEM_TYPE_GOLD, "Gold" },
+            .super = { ITEM_TYPE_GOLD, L"Gold" },
             .amount = 300,
     }, sizeof(GoldItem));
     place_item(world, gold4, 1, map->rows-2);
 
     ecs_entity_t item1 = create_item(world, 'a', (Item *) &(FoodItem) {
-            .super = { ITEM_TYPE_FOOD, "Apple" },
+            .super = { ITEM_TYPE_FOOD, L"Apple" },
             .satiation = 42,
     }, sizeof(FoodItem));
     place_item(world, item1, 18, 18);
 
     ecs_entity_t item2 = create_item(world, 'o', (Item *) &(FoodItem) {
-            .super = { ITEM_TYPE_FOOD, "Orange" },
+            .super = { ITEM_TYPE_FOOD, L"Orange" },
             .satiation = 42,
     }, sizeof(FoodItem));
     place_item(world, item2, 18, 19);
 
     ecs_entity_t item3 = create_item(world, 'b', (Item *) &(FoodItem) {
-            .super = { ITEM_TYPE_FOOD, "Banana" },
+            .super = { ITEM_TYPE_FOOD, L"Banana" },
             .satiation = 42,
     }, sizeof(FoodItem));
     place_item(world, item3, 18, 20);
 
     ecs_entity_t item4 = create_item(world, 'k', (Item *) &(FoodItem) {
-            .super = { ITEM_TYPE_FOOD, "Kiwi" },
+            .super = { ITEM_TYPE_FOOD, L"Kiwi" },
             .satiation = 42,
     }, sizeof(FoodItem));
     place_item(world, item4, 18, 21);

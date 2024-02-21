@@ -9,7 +9,6 @@
 #define MIN_TERM_LINES 24
 #define MIN_TERM_COLS 80
 
-extern char *idx_to_alpha;
 #define alpha_to_idx(c) ((c) < 97 ? (c) - 39 : (c) - 97)
 #define is_alpha(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 // TODO: Unify macro convention to be caps

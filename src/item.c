@@ -5,7 +5,7 @@
 #include "map.h"
 #include "component.h"
 
-char item_type_to_glyph[] = {
+wchar_t item_type_to_glyph[] = {
     [ITEM_TYPE_FOOD] = '%',
     [ITEM_TYPE_GOLD] = '$',
     [ITEM_TYPE_WEAPON] = '/',
@@ -14,7 +14,7 @@ char item_type_to_glyph[] = {
 // TODO: Make this a true weapon subtype
 Item mjolnir = {
     .type = ITEM_TYPE_WEAPON,
-    .name = "Mjolnir",
+    .name = L"Mjolnir",
 };
 
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
@@ -76,7 +76,7 @@ ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, si
     return item;
 }
 
-char get_item_type_glyph(enum item_type item) {
+wchar_t get_item_type_glyph(enum item_type item) {
     return item_type_to_glyph[item];
 }
 

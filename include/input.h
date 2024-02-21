@@ -13,3 +13,4 @@ typedef struct KeyInfo {
 } KeyInfo;
 
 InputType get_input_type(KeyInfo *key);
+enum rlsmenu_input translate_key(KeyInfo *key);
