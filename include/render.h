@@ -8,4 +8,3 @@ typedef struct WindowHolder {
     WINDOW *base;
     WINDOW *log;
 } WindowHolder;
-

@@ -1,21 +1,21 @@
-#include "component.h"
-#include "flecs.h"
-#include "map.h"
 #include "render.h"
-#include "gui.h"
+
+#include "component.h"
+#include "map.h"
 #include "log.h"
+
 #include "rlsmenu.h"
-
+#include "flecs.h"
 #include <uncursed/uncursed.h>
-#include <assert.h>
 
-void Render(ecs_iter_t *it) {
+void Render(ecs_iter_t *it)
+{
     Map *map = ecs_singleton_get_mut(it->world, Map);
     rlsmenu_gui *gui = ecs_singleton_get_mut(it->world, rlsmenu_gui);
     const Logger *l = ecs_singleton_get(it->world, Logger);
 
-    WINDOW *basewin = ((WindowHolder *)it->param)->base;
-    WINDOW *logwin = ((WindowHolder *)it->param)->log;
+    WINDOW *basewin = ((WindowHolder *) it->param)->base;
+    WINDOW *logwin = ((WindowHolder *) it->param)->log;
 
     // Logging
     const wchar_t *message = get_last_log_msg(l);
@@ -41,8 +41,8 @@ void Render(ecs_iter_t *it) {
     // GUI
     rlsmenu_str str = rlsmenu_get_menu_str(gui);
     if (str.str)
-        for(int i = 0; i < str.h; i++)
-            mvwaddwnstr(basewin, i, 0, str.str+i*str.w, str.w);
+        for (int i = 0; i < str.h; i++)
+            mvwaddwnstr(basewin, i, 0, str.str + i * str.w, str.w);
 
     wrefresh(basewin);
     wrefresh(logwin);

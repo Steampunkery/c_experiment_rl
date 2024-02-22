@@ -1,7 +1,7 @@
 #pragma once
-#include "flecs.h"
-#include "rogue.h"
+#include <stdbool.h>
 
+typedef struct ecs_world_t ecs_world_t;
 typedef struct KeyInfo KeyInfo;
 typedef struct rlsmenu_frame rlsmenu_frame;
 
@@ -14,5 +14,4 @@ struct FrameData {
     bool (*prep_frame)(FrameData *, ecs_world_t *);
 };
 
-extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
 extern FrameData gui_state[52];

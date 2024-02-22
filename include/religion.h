@@ -1,6 +1,7 @@
 #pragma once
 #include "rogue.h"
-#include "stddef.h"
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct Religious Religious;
 typedef struct Position Position;
@@ -16,7 +17,7 @@ typedef struct Boon {
 
 typedef struct AbilityBoon {
     Boon super;
-    ecs_entity_t* ability_id;
+    ecs_entity_t *ability_id;
     void *ability_data;
 } AbilityBoon;
 

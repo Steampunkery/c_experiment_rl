@@ -1,10 +1,10 @@
 #pragma once
 #include "flecs.h"
-#include "religion.h"
 #include "rogue.h"
 #include "item.h"
 
 typedef int wchar_t;
+typedef struct Religion Religion;
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Inventory);
@@ -18,6 +18,9 @@ extern ECS_COMPONENT_DECLARE(Religious);
 extern ECS_COMPONENT_DECLARE(PrayerAction);
 extern ECS_COMPONENT_DECLARE(SeeInvisible);
 extern ECS_COMPONENT_DECLARE(Renderable);
+extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
+extern ECS_COMPONENT_DECLARE(Logger);
+extern ECS_COMPONENT_DECLARE(Map);
 
 extern ECS_TAG_DECLARE(Invisible);
 extern ecs_entity_t MyTurn;
@@ -28,7 +31,7 @@ typedef struct Position {
 
 // TODO: Don't allow entity == 0
 typedef struct PickupAction {
-    // Entity to pick up or 0 for first item in the stack 
+    // Entity to pick up or 0 for first item in the stack
     ecs_entity_t entity;
 } PickupAction, DropAction;
 

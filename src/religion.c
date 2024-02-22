@@ -1,7 +1,9 @@
 #include "religion.h"
+
 #include "component.h"
-#include "flecs.h"
 #include "log.h"
+
+#include "flecs.h"
 
 Religion pastafarianism = {
     .religion_name = L"Pastafarianism",
@@ -31,24 +33,26 @@ ItemBoon IB_Mjolnir = {
 };
 
 // Add a follower to a given religion
-void add_follower(ecs_world_t *world, Religion *religion, ecs_entity_t e) {
+void add_follower(ecs_world_t *world, Religion *religion, ecs_entity_t e)
+{
     ecs_set(world, e, Religious, { religion, 3 });
     religion->num_followers++;
 }
 
-void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e) {
+void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e)
+{
     Religion *r = rel->religion;
     Boon *boon = r->boons[r->boon_idx];
 
     switch (boon->type) {
-        case BOONTYPE_ABILITY:
-            bestow_ability(world, (AbilityBoon *) boon, e);
-            break;
-        case BOONTYPE_ITEM:
-            const Position *pos = ecs_get(world, e, Position);
-            if (!pos) break;
-            bestow_item(world, (ItemBoon *) boon, pos);
-            break;
+    case BOONTYPE_ABILITY:
+        bestow_ability(world, (AbilityBoon *) boon, e);
+        break;
+    case BOONTYPE_ITEM:
+        const Position *pos = ecs_get(world, e, Position);
+        if (!pos) break;
+        bestow_item(world, (ItemBoon *) boon, pos);
+        break;
     }
 
     if (e == g_player_id) {
@@ -60,12 +64,15 @@ void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e) {
     r->boon_idx++;
 }
 
-void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e) {
+void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e)
+{
     const ecs_type_info_t *info = ecs_get_type_info(world, *boon->ability_id);
     ecs_set_id(world, e, *boon->ability_id, info->size, boon->ability_data);
 }
 
-void bestow_item(ecs_world_t *world, ItemBoon *boon, const Position *pos) {
-    ecs_entity_t item = create_item(world, get_item_type_glyph(boon->item->type), boon->item, boon->size);
+void bestow_item(ecs_world_t *world, ItemBoon *boon, const Position *pos)
+{
+    ecs_entity_t item =
+            create_item(world, get_item_type_glyph(boon->item->type), boon->item, boon->size);
     place_item(world, item, pos->x, pos->y);
 }

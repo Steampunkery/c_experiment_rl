@@ -1,9 +1,10 @@
 #include "item.h"
 
-#include <glib.h>
-#include "flecs.h"
 #include "map.h"
 #include "component.h"
+
+#include "flecs.h"
+#include <glib.h>
 
 wchar_t item_type_to_glyph[] = {
     [ITEM_TYPE_FOOD] = '%',
@@ -17,15 +18,14 @@ Item mjolnir = {
     .name = L"Mjolnir",
 };
 
-ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
+ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
+{
     Map *map = ecs_singleton_get_mut(world, Map);
 
-    if (!map || !map_contains(map, x, y))
-        return 0;
+    if (!map || !map_contains(map, x, y)) return 0;
 
     GArray *items = map->items[y][x];
-    if (!items)
-        items = map->items[y][x] = g_array_sized_new(FALSE, TRUE, sizeof(ecs_entity_t), 8);
+    if (!items) items = map->items[y][x] = g_array_sized_new(FALSE, TRUE, sizeof(ecs_entity_t), 8);
 
     guint i;
     for (i = 0; i < items->len; i++)
@@ -41,11 +41,11 @@ ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
     return e;
 }
 
-ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
+ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
+{
     Map *map = ecs_singleton_get_mut(world, Map);
 
-    if (!map || !map_contains(map, x, y) || !map->items[y][x])
-        return 0;
+    if (!map || !map_contains(map, x, y) || !map->items[y][x]) return 0;
 
     GArray *items = map->items[y][x];
 
@@ -66,7 +66,8 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y) {
     return e;
 }
 
-ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, size_t size) {
+ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, size_t size)
+{
     ecs_entity_t item = ecs_new(world, 0);
     ecs_set(world, item, Glyph, { glyph });
     ecs_set(world, item, Renderable, { true });
@@ -76,24 +77,23 @@ ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, si
     return item;
 }
 
-wchar_t get_item_type_glyph(enum item_type item) {
+wchar_t get_item_type_glyph(enum item_type item)
+{
     return item_type_to_glyph[item];
 }
 
-ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type type, int x, int y) {
-    if (!map || !map_contains(map, x, y))
-        return 0;
+ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type type, int x, int y)
+{
+    if (!map || !map_contains(map, x, y)) return 0;
 
     GArray *items = map->items[y][x];
-    if (!items)
-        return 0;
+    if (!items) return 0;
 
     ecs_entity_t e;
     for (guint i = 0; i < items->len; i++) {
         e = g_array_index(items, ecs_entity_t, i);
         const Item *item = ecs_get(world, e, Item);
-        if (item->type == type)
-            return e;
+        if (item->type == type) return e;
     }
 
     return 0;

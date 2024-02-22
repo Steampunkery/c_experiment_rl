@@ -1,7 +1,9 @@
 #include "component.h"
+
 #include "map.h"
 #include "gui.h"
 #include "log.h"
+
 #include "rlsmenu.h"
 
 ECS_COMPONENT_DECLARE(Position);
@@ -17,11 +19,15 @@ ECS_COMPONENT_DECLARE(Religious);
 ECS_COMPONENT_DECLARE(PrayerAction);
 ECS_COMPONENT_DECLARE(SeeInvisible);
 ECS_COMPONENT_DECLARE(Renderable);
+ECS_COMPONENT_DECLARE(rlsmenu_gui);
+ECS_COMPONENT_DECLARE(Logger);
+ECS_COMPONENT_DECLARE(Map);
 
 ECS_TAG_DECLARE(Invisible);
 ecs_entity_t MyTurn;
 
-void register_components(ecs_world_t *world) {
+void register_components(ecs_world_t *world)
+{
     ECS_COMPONENT_DEFINE(world, Position);
     ECS_COMPONENT_DEFINE(world, Inventory);
     ECS_COMPONENT_DEFINE(world, MovementAction);
@@ -43,17 +49,20 @@ void register_components(ecs_world_t *world) {
     ECS_COMPONENT_DEFINE(world, Logger);
 }
 
-bool inv_full(const Inventory *inv) {
+bool inv_full(const Inventory *inv)
+{
     return inv->end >= inv->capacity;
 }
 
-bool inv_insert(Inventory *inv, ecs_entity_t e) {
+bool inv_insert(Inventory *inv, ecs_entity_t e)
+{
     if (inv->end >= inv->capacity || !e) return false;
     inv->items[inv->end++] = e;
     return true;
 }
 
-bool inv_delete(Inventory *inv, ecs_entity_t e) {
+bool inv_delete(Inventory *inv, ecs_entity_t e)
+{
     for (int i = 0; i < inv->capacity; i++)
         if (inv->items[i] == e) {
             inv->items[i] = inv->items[--inv->end];

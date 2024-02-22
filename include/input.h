@@ -3,7 +3,6 @@
 
 typedef unsigned int wint_t;
 typedef enum { MovementInput, WaitInput, PickupInput, PrayerInput, NotImplemented } InputType;
-typedef struct Position MovementAction;
 
 extern MovementAction input_to_movement[];
 

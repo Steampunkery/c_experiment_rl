@@ -1,7 +1,8 @@
 #pragma once
-#include "flecs.h"
 #include "component.h"
 
+typedef long unsigned int ecs_entity_t;
+typedef struct ecs_world_t ecs_world_t;
 typedef struct DijkstraMap DijkstraMap;
 typedef struct Map Map;
 

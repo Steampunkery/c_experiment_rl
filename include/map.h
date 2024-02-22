@@ -1,16 +1,16 @@
 #pragma once
-#include "flecs.h"
 #include "dijkstra.h"
+#include <stdbool.h>
 
 #define NUM_DIJKSTRA_MAPS 1
 
 typedef struct _GArray GArray;
 typedef enum { Floor = 0, Wall } TileType;
 typedef struct Position MovementAction;
+typedef struct ecs_world_t ecs_world_t;
+typedef long unsigned int ecs_entity_t;
 
 extern char tiletype_to_wchar[];
-
-extern ECS_COMPONENT_DECLARE(Map);
 
 enum dm_type { DM_TYPE_Item };
 enum dm_order { DM_ORDER_GOLD };

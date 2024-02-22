@@ -1,7 +1,4 @@
 #pragma once
-#include <stdint.h>
-#include <stdbool.h>
-#include <assert.h>
 
 #define INVENTORY_MAX 64
 #define NAME_LEN_MAX 64
@@ -9,18 +6,24 @@
 #define MIN_TERM_LINES 24
 #define MIN_TERM_COLS 80
 
-#define alpha_to_idx(c) ((c) < 97 ? (c) - 39 : (c) - 97)
+#define alpha_to_idx(c) ((c) < 97 ? (c) -39 : (c) -97)
 #define is_alpha(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 // TODO: Unify macro convention to be caps
-#define XY_TO_IDX(x, y, w) ((x) + (y)*(w))
+#define XY_TO_IDX(x, y, w) ((x) + (y) * (w))
 
 extern int X_DIRS[8];
 extern int Y_DIRS[8];
 
-typedef uint64_t ecs_entity_t;
+typedef unsigned long int ecs_entity_t;
 extern ecs_entity_t g_player_id;
 
 typedef enum { RunSystems, TakeInput, GUI, NewGUIFrame } GameState;
-typedef enum { PlayerGUICommand, GUICommand, HeroCommand, QuitCommand, InvalidCommand, CancelCommand, SuccessCommand } CommandType;
-
-static inline bool assert_bool(bool cond) { assert(cond); return true; }
+typedef enum {
+    PlayerGUICommand,
+    GUICommand,
+    HeroCommand,
+    QuitCommand,
+    InvalidCommand,
+    CancelCommand,
+    SuccessCommand
+} CommandType;

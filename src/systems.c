@@ -1,10 +1,11 @@
-#include "flecs.h"
 #include "systems.h"
+
 #include "component.h"
-#include "map.h"
 #include "render.h"
 #include "log.h"
-#include "item.h"
+#include "religion.h"
+
+#include "flecs.h"
 
 ecs_entity_t render;
 
@@ -14,7 +15,8 @@ ECS_SYSTEM_DECLARE(Drop);
 ECS_SYSTEM_DECLARE(AI);
 ECS_SYSTEM_DECLARE(Prayer);
 
-void register_systems(ecs_world_t *world) {
+void register_systems(ecs_world_t *world)
+{
     ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, MovementAction);
     ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, PickupAction, Position);
     ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, DropAction, Position);
@@ -31,7 +33,8 @@ void register_systems(ecs_world_t *world) {
     });
 }
 
-void Move(ecs_iter_t *it) {
+void Move(ecs_iter_t *it)
+{
     Position *pos = ecs_field(it, Position, 1);
     MovementAction *mov = ecs_field(it, MovementAction, 2);
 
@@ -42,7 +45,8 @@ void Move(ecs_iter_t *it) {
     }
 }
 
-void AI(ecs_iter_t *it) {
+void AI(ecs_iter_t *it)
+{
     AIController *aic = ecs_field(it, AIController, 1);
 
     for (int i = 0; i < it->count; i++) {
@@ -50,7 +54,8 @@ void AI(ecs_iter_t *it) {
     }
 }
 
-void Pickup(ecs_iter_t *it) {
+void Pickup(ecs_iter_t *it)
+{
     Inventory *inv = ecs_field(it, Inventory, 1);
     PickupAction *pa = ecs_field(it, PickupAction, 2);
     Position *pos = ecs_field(it, Position, 3);
@@ -64,7 +69,8 @@ void Pickup(ecs_iter_t *it) {
     }
 }
 
-void Drop(ecs_iter_t *it) {
+void Drop(ecs_iter_t *it)
+{
     Inventory *inv = ecs_field(it, Inventory, 1);
     DropAction *da = ecs_field(it, DropAction, 2);
     Position *pos = ecs_field(it, Position, 3);
@@ -77,7 +83,8 @@ void Drop(ecs_iter_t *it) {
     }
 }
 
-void Prayer(ecs_iter_t *it) {
+void Prayer(ecs_iter_t *it)
+{
     Religious *rel;
     for (int i = 0; i < it->count; i++) {
         if (!ecs_has_id(it->world, it->entities[i], ecs_id(Religious))) {

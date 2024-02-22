@@ -1,13 +1,9 @@
 #include "gui.h"
-#include "render.h"
-#include "component.h"
-#include "input.h"
-#include <glib.h>
-#include <uncursed/uncursed.h>
-#include <assert.h>
-#include "rlsmenu.h"
 
-ECS_COMPONENT_DECLARE(rlsmenu_gui);
+#include "component.h"
+
+#include "rlsmenu.h"
+#include <stdlib.h>
 
 static enum rlsmenu_cb_res drop_item_cb(rlsmenu_frame *frame, void *e);
 static void on_complete(rlsmenu_frame *frame);
@@ -65,20 +61,23 @@ FrameData gui_state[52] = {
     },
 };
 
-static void on_complete(rlsmenu_frame *frame) {
+static void on_complete(rlsmenu_frame *frame)
+{
     rlsmenu_list_shared *s = (rlsmenu_list_shared *) frame;
     free(s->item_names);
 
     rlsmenu_push_return(frame->parent, frame->state);
 }
 
-static enum rlsmenu_cb_res drop_item_cb(rlsmenu_frame *frame, void *e) {
+static enum rlsmenu_cb_res drop_item_cb(rlsmenu_frame *frame, void *e)
+{
     FrameData *state = frame->state;
     ecs_set(state->world, g_player_id, DropAction, { *(ecs_entity_t *) e });
     return RLSMENU_CB_SUCCESS;
 }
 
-static bool prep_player_inv_frame(FrameData *data, ecs_world_t *world) {
+static bool prep_player_inv_frame(FrameData *data, ecs_world_t *world)
+{
     rlsmenu_list_shared *s = (rlsmenu_list_shared *) data->frame;
     Inventory *inv = ecs_get_mut(world, g_player_id, Inventory);
     if (inv->end == 0) return false;
