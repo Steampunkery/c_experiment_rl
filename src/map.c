@@ -57,7 +57,8 @@ void destroy_map(Map *map)
 
     for (int i = 0; i < map->rows; i++)
         for (int j = 0; j < map->cols; j++)
-            g_array_unref(map->items[i][j]);
+            if (map->items[i][j])
+                g_array_unref(map->items[i][j]);
 
     destroy_grid(map->items);
     destroy_grid(map->grid);
