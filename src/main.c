@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <uncursed/uncursed.h>
-#include <signal.h>
 #include <glib.h>
 
 CommandType get_command(KeyInfo *key);
@@ -30,7 +29,7 @@ int Y_DIRS[] = { 0, 1, 0, -1, 1, 1, -1, -1 };
 
 int main(int argc, char **argv)
 {
-    // raise(SIGSTOP);
+    // for (volatile int i = 0; i == 0;);
     initialize_uncursed(&argc, argv);
     initscr();
 
@@ -69,26 +68,32 @@ int main(int argc, char **argv)
 
     // Put state variables here.
     // TODO!: Make these into a struct
-    GameState state = TakeInput;
+    GameState state = PreTurn;
     KeyInfo key;
+    bool is_player_turn = false;
     while (true) {
         ecs_run(world, render, 0.0, &game_windows);
 
         switch (state) {
-        case TakeInput:
-            CommandType cmd = get_command(&key);
-            bool is_player_turn = ecs_has_id(world, g_player_id, MyTurn);
-            if (cmd == GUICommand || (cmd == PlayerGUICommand && is_player_turn)) {
-                state = NewGUIFrame;
-                break;
-            } else if (cmd == QuitCommand)
-                goto done;
+        case PreTurn:
+            ecs_run(world, ecs_id(Initiative), 0.0, NULL);
+            is_player_turn = ecs_has(world, g_player_id, MyTurn);
+            state = is_player_turn ? PlayerTurn : RunSystems;
+            break;
+        case PlayerTurn:
+            // TODO: Find a better way to handle the player's turn elegantly
+            do {
+                CommandType cmd = get_command(&key);
+                if (cmd == GUICommand || (cmd == PlayerGUICommand && is_player_turn)) {
+                    state = NewGUIFrame;
+                    break;
+                } else if (cmd == QuitCommand) {
+                    goto done;
+                }
 
-            // process_player_input returns whether the players turn is done
-            if (process_player_input(world, key)) {
                 state = RunSystems;
-                break;
-            }
+                // process_player_input returns whether the players turn is done
+            } while (is_player_turn && !process_player_input(world, key));
 
             break;
         case RunSystems:
@@ -99,14 +104,14 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(Drop), 0.0, NULL);
             ecs_run(world, ecs_id(Prayer), 0.0, NULL);
 
-            state = TakeInput;
+            state = PreTurn;
             break;
         case NewGUIFrame:
             int idx = alpha_to_idx(key.key);
             assert(idx >= 0);
 
             if (!gui_state[idx].prep_frame(&gui_state[idx], world)) {
-                state = TakeInput;
+                state = PlayerTurn;
                 continue;
             }
             rlsmenu_gui_push(gui, gui_state[idx].frame);
@@ -116,9 +121,16 @@ int main(int argc, char **argv)
         case GUI:
             get_command(&key);
             enum rlsmenu_result res = rlsmenu_update(gui, translate_key(&key));
-            if (res == RLSMENU_DONE || res == RLSMENU_CANCELED) {
+            switch (res) {
+            case RLSMENU_DONE:
                 FrameData *fd = rlsmenu_pop_return(gui);
-                state = fd ? (fd->consumes_turn ? RunSystems : TakeInput) : TakeInput;
+                assert(fd);
+                state = fd->consumes_turn ? RunSystems : PlayerTurn;
+                break;
+            case RLSMENU_CANCELED:
+                state = PlayerTurn;
+                break;
+            case RLSMENU_CONT:;
             }
             break;
         }
@@ -139,7 +151,7 @@ uncursed_done:
 CommandType get_command(KeyInfo *key)
 {
     wint_t c;
-    int ret = timeout_get_wch(10, &c);
+    int ret = timeout_get_wch(7, &c);
 
     key->status = ret;
     key->key = c;
@@ -175,6 +187,9 @@ void temp_arena_init(ecs_world_t *world, Map *map)
 
     ecs_entity_t goblin2 = init_goblin(world, 40, 21);
     ecs_set(world, goblin2, AIController, { left_walker, NULL });
+
+    ecs_entity_t goblin4 = init_goblin(world, 40, 23);
+    ecs_set(world, goblin4, AIController, { left_walker, NULL });
 
     ecs_entity_t goblin3 = init_goblin(world, 40, 22);
     ecs_set(world, goblin3, AIController, { greedy_ai, map });

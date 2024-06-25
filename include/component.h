@@ -21,19 +21,30 @@ extern ECS_COMPONENT_DECLARE(Renderable);
 extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
 extern ECS_COMPONENT_DECLARE(Logger);
 extern ECS_COMPONENT_DECLARE(Map);
+extern ECS_COMPONENT_DECLARE(InitiativeData);
 
 extern ECS_TAG_DECLARE(Invisible);
-extern ecs_entity_t MyTurn;
+extern ECS_TAG_DECLARE(MyTurn);
+
 
 typedef struct Position {
     int x, y;
-} Position, MovementAction;
+} Position;
+
+typedef struct MovementAction {
+    int x, y;
+    int cost;
+} MovementAction;
 
 // TODO: Don't allow entity == 0
 typedef struct PickupAction {
     // Entity to pick up or 0 for first item in the stack
     ecs_entity_t entity;
 } PickupAction, DropAction;
+
+typedef struct PrayerAction {
+    char dummy;
+} PrayerAction;
 
 typedef struct Inventory {
     int capacity;
@@ -59,10 +70,6 @@ typedef struct Religious {
     int favors_left;
 } Religious;
 
-typedef struct PrayerAction {
-    char dummy;
-} PrayerAction;
-
 typedef struct SeeInvisible {
     char dummy;
 } SeeInvisible;
@@ -70,6 +77,11 @@ typedef struct SeeInvisible {
 typedef struct Renderable {
     bool should_render;
 } Renderable;
+
+typedef struct InitiativeData {
+    int points;
+    int increment;
+} InitiativeData;
 
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);

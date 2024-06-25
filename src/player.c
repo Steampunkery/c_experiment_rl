@@ -13,7 +13,7 @@ ecs_entity_t init_player(ecs_world_t *world)
     ecs_set(world, player, Glyph, { '@' });
     ecs_set(world, player, Renderable, { true });
     ecs_set(world, player, Inventory, { 10, 0, { 0 } });
-    ecs_add_id(world, player, MyTurn);
+    ecs_set(world, player, InitiativeData, { 0, 10 });
 
     add_follower(world, &pastafarianism, player);
 
@@ -31,10 +31,13 @@ bool process_player_input(ecs_world_t *world, KeyInfo key)
         // TODO?: Separate these cases out into callbacks
         switch (in) {
         case MovementInput:
-            ret = try_move_entity(world, g_player_id, &input_to_movement[key.key]);
+            Position *pos = &input_to_movement[key.key];
+            int cost = get_cost_for_movement(pos->x, pos->y);
+            MovementAction mov = { pos->x, pos->y, cost };
+            ret = try_move_entity(world, g_player_id, &mov);
             break;
         case WaitInput:
-            ecs_set(world, g_player_id, MovementAction, { 0, 0 });
+            ecs_set(world, g_player_id, MovementAction, { 0, 0, 10 });
             ret = true;
             break;
         case PickupInput:

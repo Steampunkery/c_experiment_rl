@@ -115,12 +115,12 @@ bool is_passable(const Map *map, int x, int y)
     return map->grid[y][x] != Wall;
 }
 
-bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov)
+bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off)
 {
     const Map *map = ecs_singleton_get(world, Map);
     const Position *pos = ecs_get(world, e, Position);
-    int new_x = pos->x + mov->x;
-    int new_y = pos->y + mov->y;
+    int new_x = pos->x + off->x;
+    int new_y = pos->y + off->y;
 
     if (!map_contains(map, new_x, new_y)) return 0;
     if (!is_passable(map, new_x, new_y)) return 0;

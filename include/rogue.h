@@ -17,7 +17,7 @@ extern int Y_DIRS[8];
 typedef unsigned long int ecs_entity_t;
 extern ecs_entity_t g_player_id;
 
-typedef enum { RunSystems, TakeInput, GUI, NewGUIFrame } GameState;
+typedef enum { RunSystems, PreTurn, PlayerTurn, GUI, NewGUIFrame } GameState;
 typedef enum {
     PlayerGUICommand,
     GUICommand,

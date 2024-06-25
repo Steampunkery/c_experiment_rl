@@ -6,7 +6,7 @@
 
 typedef struct _GArray GArray;
 typedef enum { Floor = 0, Wall } TileType;
-typedef struct Position MovementAction;
+typedef struct Position Position;
 typedef struct ecs_world_t ecs_world_t;
 typedef long unsigned int ecs_entity_t;
 
@@ -45,6 +45,6 @@ void destroy_grid(void *grid);
 
 bool is_passable(const Map *map, int x, int y);
 int map_contains(const Map *map, int x, int y);
-bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, MovementAction *mov);
+bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off);
 
 void update_dijkstra_maps(ecs_world_t *world, Map *map);

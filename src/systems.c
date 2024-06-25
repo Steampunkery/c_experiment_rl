@@ -9,6 +9,7 @@
 
 ecs_entity_t render;
 
+ECS_SYSTEM_DECLARE(Initiative);
 ECS_SYSTEM_DECLARE(Move);
 ECS_SYSTEM_DECLARE(Pickup);
 ECS_SYSTEM_DECLARE(Drop);
@@ -17,11 +18,12 @@ ECS_SYSTEM_DECLARE(Prayer);
 
 void register_systems(ecs_world_t *world)
 {
-    ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, MovementAction);
-    ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, PickupAction, Position);
-    ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, DropAction, Position);
-    ECS_SYSTEM_DEFINE(world, AI, EcsOnUpdate, AIController);
-    ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, PrayerAction);
+    ECS_SYSTEM_DEFINE(world, Initiative, EcsOnUpdate, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, MovementAction, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, PickupAction, Position, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, DropAction, Position, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, AI, EcsOnUpdate, AIController, MyTurn);
+    ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, PrayerAction, InitiativeData);
 
     render = ecs_system(world, {
         .query.filter.terms = {
@@ -33,14 +35,29 @@ void register_systems(ecs_world_t *world)
     });
 }
 
+void Initiative(ecs_iter_t *it)
+{
+    InitiativeData *init = ecs_field(it, InitiativeData, 1);
+
+    for (int i = 0; i < it->count; i++) {
+        init[i].points += init[i].increment;
+        if (init[i].points >= 0)
+            ecs_add(it->world, it->entities[i], MyTurn);
+        else
+            ecs_remove(it->world, it->entities[i], MyTurn);
+    }
+}
+
 void Move(ecs_iter_t *it)
 {
     Position *pos = ecs_field(it, Position, 1);
     MovementAction *mov = ecs_field(it, MovementAction, 2);
+    InitiativeData *init = ecs_field(it, InitiativeData, 3);
 
     for (int i = 0; i < it->count; i++) {
         pos[i].x += mov[i].x;
         pos[i].y += mov[i].y;
+        init[i].points -= mov[i].cost;
         ecs_remove(it->world, it->entities[i], MovementAction);
     }
 }
@@ -59,12 +76,14 @@ void Pickup(ecs_iter_t *it)
     Inventory *inv = ecs_field(it, Inventory, 1);
     PickupAction *pa = ecs_field(it, PickupAction, 2);
     Position *pos = ecs_field(it, Position, 3);
+    InitiativeData *init = ecs_field(it, InitiativeData, 4);
 
     for (int i = 0; i < it->count; i++) {
         if (!inv_full(&inv[i])) {
             ecs_entity_t e = pickup_item(it->world, pa[i].entity, pos[i].x, pos[i].y);
             inv_insert(&inv[i], e); // error handling here
         }
+        init[i].points -= 50;
         ecs_remove(it->world, it->entities[i], PickupAction);
     }
 }
@@ -74,17 +93,22 @@ void Drop(ecs_iter_t *it)
     Inventory *inv = ecs_field(it, Inventory, 1);
     DropAction *da = ecs_field(it, DropAction, 2);
     Position *pos = ecs_field(it, Position, 3);
+    InitiativeData *init = ecs_field(it, InitiativeData, 4);
 
     for (int i = 0; i < it->count; i++) {
         assert(da[i].entity != 0);
         place_item(it->world, da[i].entity, pos[i].x, pos[i].y); // error handling here
         assert(inv_delete(&inv[i], da[i].entity));
+
+        init[i].points -= 50;
         ecs_remove(it->world, it->entities[i], DropAction);
     }
 }
 
 void Prayer(ecs_iter_t *it)
 {
+    InitiativeData *init = ecs_field(it, InitiativeData, 2);
+
     Religious *rel;
     for (int i = 0; i < it->count; i++) {
         if (!ecs_has_id(it->world, it->entities[i], ecs_id(Religious))) {
@@ -104,6 +128,8 @@ void Prayer(ecs_iter_t *it)
                 }
             }
         }
+
+        init[i].points -= 200;
         ecs_remove(it->world, it->entities[i], PrayerAction);
     }
 }

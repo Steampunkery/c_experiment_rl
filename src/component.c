@@ -22,9 +22,10 @@ ECS_COMPONENT_DECLARE(Renderable);
 ECS_COMPONENT_DECLARE(rlsmenu_gui);
 ECS_COMPONENT_DECLARE(Logger);
 ECS_COMPONENT_DECLARE(Map);
+ECS_COMPONENT_DECLARE(InitiativeData);
 
 ECS_TAG_DECLARE(Invisible);
-ecs_entity_t MyTurn;
+ECS_TAG_DECLARE(MyTurn);
 
 void register_components(ecs_world_t *world)
 {
@@ -40,9 +41,10 @@ void register_components(ecs_world_t *world)
     ECS_COMPONENT_DEFINE(world, PrayerAction);
     ECS_COMPONENT_DEFINE(world, SeeInvisible);
     ECS_COMPONENT_DEFINE(world, Renderable);
+    ECS_COMPONENT_DEFINE(world, InitiativeData);
 
     ECS_TAG_DEFINE(world, Invisible);
-    MyTurn = ecs_new_id(world);
+    ECS_TAG_DEFINE(world, MyTurn);
 
     ECS_COMPONENT_DEFINE(world, Map);
     ECS_COMPONENT_DEFINE(world, rlsmenu_gui);
