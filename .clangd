@@ -1,0 +1,5 @@
+CompileFlags:
+  Add:
+    - -Wno-sometimes-uninitialized
+    - -Wno-c23-extensions
+    - -Wno-error=missing-field-initializers

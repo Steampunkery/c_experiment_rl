@@ -6,9 +6,9 @@ CC=gcc
 ILIB=-I$(LDIR)/flecs/include
 ILIB:=$(ILIB) -I$(LDIR)/DijkstraMap/include
 ILIB:=$(ILIB) -I$(LDIR)/rlsmenu
-CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror
+CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror -std=gnu11
 
-LFLAGS=-luncursed $(shell pkg-config --libs glib-2.0)
+LFLAGS=-luncursed $(shell pkg-config --libs glib-2.0) -lm
 
 _DEPS = rogue.h \
 		component.h \
