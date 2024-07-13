@@ -1,8 +1,8 @@
 .*.swp
 *.vim
 build/
-cscope*
-lib/dijkstra
 roguelike
 .cache/
 venv/
+lib/**/*.o
+lib/**/*.a

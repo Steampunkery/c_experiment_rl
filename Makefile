@@ -1,79 +1,108 @@
-IDIR=include
-ODIR=build
-LDIR=lib
-CC=gcc
+# @author   clemedon (Clément Vidon)
+####################################### BEG_5 ####
 
-ILIB=-I$(LDIR)/flecs/include
-ILIB:=$(ILIB) -I$(LDIR)/DijkstraMap/include
-ILIB:=$(ILIB) -I$(LDIR)/rlsmenu
-CFLAGS=-I$(IDIR) $(ILIB) -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror -std=gnu11
+NAME        := roguelike
 
-LFLAGS=-luncursed $(shell pkg-config --libs glib-2.0) -lm
+#------------------------------------------------#
+#   INGREDIENTS                                  #
+#------------------------------------------------#
+# LIBS        libraries to be used
+# LIBS_TARGET libraries to be built
+#
+# INCS        header file locations
+#
+# SRC_DIR     source directory
+# SRCS        source files
+#
+# BUILD_DIR   build directory
+# OBJS        object files
+# DEPS        dependency files
+#
+# CC          compiler
+# CFLAGS      compiler flags
+# CPPFLAGS    preprocessor flags
+# LDFLAGS     linker flags
+# LDLIBS      libraries name
 
-_DEPS = rogue.h \
-		component.h \
-		input.h \
-		map.h \
-		player.h \
-		render.h \
-		systems.h \
-		ai.h \
-		monster.h \
-		gui.h \
-		religion.h \
-		log.h \
-		observer.h \
-		item.h
+LIBS        := m uncursed glib-2.0 dijkstra rlsmenu flecs
+LIBS_TARGET := lib/rlsmenu/rlsmenu.a lib/flecs/flecs.a lib/DijkstraMap/dijkstra.a
 
-DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS)) \
-	   $(LDIR)/flecs/include/flecs.h \
-	   $(LDIR)/DijkstraMap/include/dijkstra.h \
-	   $(LDIR)/rlsmenu/rlsmenu.h
+INCS        := include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include
 
-_OBJ =  main.o \
-		component.o \
-		map.o \
-		player.o \
-		render.o \
-		systems.o \
-		ai.o \
-		monster.o \
-		gui.o \
-		input.o \
-		religion.o \
-		log.o \
-		observer.o \
-		item.o
+SRC_DIR     := src
+SRCS        := ai.c component.c gui.c input.c item.c log.c main.c map.c \
+			   monster.c observer.c player.c religion.c render.c systems.c
+SRCS        := $(SRCS:%=$(SRC_DIR)/%)
 
-_LIBOBJ = flecs.o \
-		  dijkstra.o \
-		  rlsmenu.o
+BUILD_DIR   := build
+OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DEPS        := $(OBJS:.o=.d)
 
-OBJ = $(patsubst %,$(ODIR)/%,$(_LIBOBJ)) \
-	  $(patsubst %,$(ODIR)/%,$(_OBJ))
+CC          := gcc
+CFLAGS		:= -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror -std=gnu11
+CFLAGS      += $(addprefix -I,$(INCS)) -MMD -MP
+LDFLAGS     := $(addprefix -L,$(dir $(LIBS_TARGET)))
+LDFLAGS     += -fsanitize=undefined -fno-sanitize-recover
+LDLIBS      := $(addprefix -l,$(LIBS))
 
-default: roguelike
+#------------------------------------------------#
+#   UTILITIES                                    #
+#------------------------------------------------#
+# RM        force remove
+# MAKEFLAGS make flags
+# DIR_DUP   duplicate directory tree
 
-$(ODIR)/%.o: src/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+RM          := rm -f
+MAKEFLAGS   += --silent --no-print-directory
+DIR_DUP     = mkdir -p $(@D)
 
-roguelike: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LFLAGS)
+#------------------------------------------------#
+#   RECIPES                                      #
+#------------------------------------------------#
+# all       default goal
+# $(NAME)   link .o -> archive
+# $(LIBS)   build libraries
+# %.o       compilation .c -> .o
+# clean     remove .o
+# fclean    remove .o + binary
+# re        remake default goal
+# run       run the program
+# info      print the default goal recipe
 
-flecs: $(ODIR)/flecs.o
-dijkstra: $(ODIR)/dijkstra.o
-rlsmenu: $(ODIR)/rlsmenu.o
+all: $(NAME)
 
-$(ODIR)/flecs.o: $(LDIR)/flecs/src/flecs.c $(LDIR)/flecs/include/flecs.h
-	$(CC) -c -o $@ $< $(CFLAGS)
+$(NAME): $(OBJS) $(LIBS_TARGET)
+	$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(NAME)
+	$(info CREATED $(NAME))
 
-$(ODIR)/dijkstra.o: $(LDIR)/DijkstraMap/src/dijkstra.c $(LDIR)/DijkstraMap/include/dijkstra.h
-	$(CC) -c -o $@ $< $(CFLAGS)
+$(LIBS_TARGET):
+	$(MAKE) -C $(@D)
 
-$(ODIR)/rlsmenu.o: $(LDIR)/rlsmenu/rlsmenu.c $(LDIR)/rlsmenu/rlsmenu.h
-	$(CC) -c -o $@ $< $(CFLAGS)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(DIR_DUP)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(info CREATED $@)
 
-.PHONY: clean flecs dijkstra rlsmenu default
+-include $(DEPS)
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(IDIR)/*~ roguelike
+	$(RM) $(OBJS) $(DEPS)
+	$(RM) $(NAME)
+
+fclean: clean
+	for f in $(dir $(LIBS_TARGET)); do $(MAKE) -C $$f clean; done
+
+re:
+	$(MAKE) fclean
+	$(MAKE) all
+
+info-%:
+	$(MAKE) --dry-run --always-make $* | grep -v "info"
+
+#------------------------------------------------#
+#   SPEC                                         #
+#------------------------------------------------#
+
+.PHONY: clean fclean re
+.SILENT:
+
