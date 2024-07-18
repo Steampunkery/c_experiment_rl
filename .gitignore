@@ -3,6 +3,5 @@
 build/
 roguelike
 .cache/
-venv/
 lib/**/*.o
 lib/**/*.a
