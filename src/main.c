@@ -27,6 +27,7 @@ ecs_entity_t g_player_id;
 int X_DIRS[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 int Y_DIRS[] = { 0, 1, 0, -1, 1, 1, -1, -1 };
 
+// TODO: Refactor this while damn file
 int main(int argc, char **argv)
 {
     // for (volatile int i = 0; i == 0;);
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
     // Put state variables here.
     // TODO!: Make these into a struct
     GameState state = PreTurn;
-    KeyInfo key;
+    KeyInfo key = { 0 };
     bool is_player_turn = false;
     while (true) {
         ecs_run(world, render, 0.0, &game_windows);
@@ -148,9 +149,10 @@ uncursed_done:
     return 0;
 }
 
+// TODO: Enumerating menus like this is SHIT
 CommandType get_command(KeyInfo *key)
 {
-    wint_t c;
+    wint_t c = 0;
     int ret = timeout_get_wch(7, &c);
 
     key->status = ret;

@@ -47,6 +47,7 @@ Map *new_arena(Map *map, int rows, int cols)
                           &map->dm_arena);
 
     map->should_rebuild_str = true;
+    map->str = NULL;
 
     return map;
 }
