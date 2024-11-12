@@ -22,10 +22,29 @@ extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
 extern ECS_COMPONENT_DECLARE(Logger);
 extern ECS_COMPONENT_DECLARE(Map);
 extern ECS_COMPONENT_DECLARE(InitiativeData);
+extern ECS_COMPONENT_DECLARE(StatBlock);
+extern ECS_COMPONENT_DECLARE(Equippable);
+extern ECS_COMPONENT_DECLARE(Weight);
 
 extern ECS_TAG_DECLARE(Invisible);
 extern ECS_TAG_DECLARE(MyTurn);
 
+typedef struct Equippable {
+    /*ArmorSlot as;*/
+    StatBlockMod stats;
+} Equippable;
+
+typedef struct Weight {
+    int w;
+} Weight;
+
+typedef struct Value {
+    int v;
+} Value;
+
+typedef struct Edible {
+    int e;
+} Edible;
 
 typedef struct Position {
     int x, y;

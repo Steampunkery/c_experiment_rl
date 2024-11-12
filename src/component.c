@@ -23,6 +23,8 @@ ECS_COMPONENT_DECLARE(rlsmenu_gui);
 ECS_COMPONENT_DECLARE(Logger);
 ECS_COMPONENT_DECLARE(Map);
 ECS_COMPONENT_DECLARE(InitiativeData);
+ECS_COMPONENT_DECLARE(StatBlock);
+ECS_COMPONENT_DECLARE(StatBlockMod);
 
 ECS_TAG_DECLARE(Invisible);
 ECS_TAG_DECLARE(MyTurn);
@@ -42,6 +44,8 @@ void register_components(ecs_world_t *world)
     ECS_COMPONENT_DEFINE(world, SeeInvisible);
     ECS_COMPONENT_DEFINE(world, Renderable);
     ECS_COMPONENT_DEFINE(world, InitiativeData);
+    ECS_COMPONENT_DEFINE(world, StatBlock);
+    ECS_COMPONENT_DEFINE(world, StatBlockMod);
 
     ECS_TAG_DEFINE(world, Invisible);
     ECS_TAG_DEFINE(world, MyTurn);

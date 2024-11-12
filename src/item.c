@@ -10,6 +10,7 @@ wchar_t item_type_to_glyph[] = {
     [ITEM_TYPE_FOOD] = '%',
     [ITEM_TYPE_GOLD] = '$',
     [ITEM_TYPE_WEAPON] = '/',
+    [ITEM_TYPE_ARMOR] = ')',
 };
 
 // TODO: Make this a true weapon subtype
@@ -17,6 +18,26 @@ Item mjolnir = {
     .type = ITEM_TYPE_WEAPON,
     .name = L"Mjolnir",
 };
+
+// TODO: Make this a true armor subtype
+Item speed_boots = {
+    .type = ITEM_TYPE_ARMOR,
+    .name = L"Boots of Speed",
+};
+
+/*
+Armor speed_boots = {
+    .super = {
+        .type = ITEM_TYPE_ARMOR,
+        .name = L"Boots of Speed",
+    },
+    .slot = ARMOR_SLOT_BOOTS,
+    .ac = 2,
+    .effect = {
+        .f = 
+    }
+}
+*/
 
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {

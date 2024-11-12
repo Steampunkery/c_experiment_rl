@@ -14,6 +14,7 @@ ecs_entity_t init_player(ecs_world_t *world)
     ecs_set(world, player, Renderable, { true });
     ecs_set(world, player, Inventory, { 10, 0, { 0 } });
     ecs_set(world, player, InitiativeData, { 0, 10 });
+    ecs_set(world, player, StatBlock, { 0 });
 
     add_follower(world, &pastafarianism, player);
 

@@ -40,6 +40,7 @@ typedef struct Religion {
 extern Religion pastafarianism;
 extern AbilityBoon AB_SeeInvisible;
 extern ItemBoon IB_Mjolnir;
+extern ItemBoon IB_SpeedBoots;
 
 void add_follower(ecs_world_t *, Religion *, ecs_entity_t);
 void bestow_boon(ecs_world_t *, Religious *, ecs_entity_t);

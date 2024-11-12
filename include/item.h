@@ -26,6 +26,7 @@ typedef struct FoodItem {
 
 extern wchar_t item_type_to_glyph[];
 extern Item mjolnir;
+extern Item speed_boots;
 
 ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, size_t size);
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y);
@@ -33,4 +34,22 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y);
 wchar_t get_item_type_glyph(enum item_type item);
 ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type type, int x, int y);
 
+typedef struct StatMod {
+    int add;
+    int mult;
+} StatMod;
+
+typedef struct Stat {
+    int base;
+    int add;
+    int mult;
+} Stat;
+
+typedef struct StatBlockMod {
+    StatMod speed;
+} StatBlockMod;
+
+typedef struct StatBlock {
+    Stat speed;
+} StatBlock;
 
