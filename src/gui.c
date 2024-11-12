@@ -122,10 +122,11 @@ static void mnw_redraw(MenuNetWrapper *mnw)
         rlsmenu_gui_push(&mnw->gui, data->frame);
     }
 
-    // get sockui input here and conditionally redraw menu
+    // TODO: get sockui input here
     rlsmenu_update(&mnw->gui, RLSMENU_INVALID_KEY);
     rlsmenu_str s = rlsmenu_get_menu_str(&mnw->gui);
-    sockui_draw_menu(&mnw->sui, s.str, (int[2]) { s.h, s.w });
+    if (s.has_changed)
+        sockui_draw_menu(&mnw->sui, s.str, (int[2]) { s.h, s.w });
 }
 
 // TODO: Poll on client_fds?
