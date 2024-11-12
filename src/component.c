@@ -4,8 +4,6 @@
 #include "gui.h"
 #include "log.h"
 
-#include "rlsmenu.h"
-
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Inventory);
 ECS_COMPONENT_DECLARE(MovementAction);
@@ -23,6 +21,7 @@ ECS_COMPONENT_DECLARE(rlsmenu_gui);
 ECS_COMPONENT_DECLARE(Logger);
 ECS_COMPONENT_DECLARE(Map);
 ECS_COMPONENT_DECLARE(InitiativeData);
+ECS_COMPONENT_DECLARE(MenuNetWrapper);
 
 ECS_TAG_DECLARE(Invisible);
 ECS_TAG_DECLARE(MyTurn);
@@ -42,6 +41,7 @@ void register_components(ecs_world_t *world)
     ECS_COMPONENT_DEFINE(world, SeeInvisible);
     ECS_COMPONENT_DEFINE(world, Renderable);
     ECS_COMPONENT_DEFINE(world, InitiativeData);
+    ECS_COMPONENT_DEFINE(world, MenuNetWrapper);
 
     ECS_TAG_DEFINE(world, Invisible);
     ECS_TAG_DEFINE(world, MyTurn);
@@ -60,6 +60,7 @@ bool inv_insert(Inventory *inv, ecs_entity_t e)
 {
     if (inv->end >= inv->capacity || !e) return false;
     inv->items[inv->end++] = e;
+    inv->data_id++;
     return true;
 }
 
@@ -68,6 +69,7 @@ bool inv_delete(Inventory *inv, ecs_entity_t e)
     for (int i = 0; i < inv->capacity; i++)
         if (inv->items[i] == e) {
             inv->items[i] = inv->items[--inv->end];
+            inv->data_id++;
             return true;
         }
 
