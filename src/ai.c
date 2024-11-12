@@ -1,7 +1,6 @@
 #include "ai.h"
 
 #include "monster.h"
-#include "input.h"
 #include "map.h"
 
 #include "flecs.h"
