@@ -4,3 +4,6 @@
 [submodule "lib/rlsmenu"]
 	path = lib/rlsmenu
 	url = git@github.com:Steampunkery/rlsmenu.git
+[submodule "lib/sockui"]
+	path = lib/sockui
+	url = git@github.com:Steampunkery/sockui.git

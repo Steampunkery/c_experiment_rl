@@ -74,6 +74,7 @@ int main(int argc, char **argv)
     bool is_player_turn = false;
     while (true) {
         ecs_run(world, render, 0.0, &game_windows);
+        handle_socket_menus(world);
 
         switch (state) {
         case PreTurn:
@@ -169,6 +170,8 @@ CommandType get_command(KeyInfo *key)
         case 'd':
             return PlayerGUICommand;
         case 'i':
+            return GUICommand;
+        case 'm':
             return GUICommand;
         default:
             return HeroCommand;

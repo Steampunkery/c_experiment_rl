@@ -24,10 +24,11 @@ NAME        := roguelike
 # LDFLAGS     linker flags
 # LDLIBS      libraries name
 
-LIBS        := m uncursed glib-2.0 dijkstra rlsmenu flecs
-LIBS_TARGET := lib/rlsmenu/rlsmenu.a lib/flecs/flecs.a lib/DijkstraMap/dijkstra.a
+LIBS        := m uncursed glib-2.0 dijkstra rlsmenu flecs sockui
+LIBS_TARGET := lib/rlsmenu/librlsmenu.a lib/flecs/libflecs.a \
+			   lib/DijkstraMap/libdijkstra.a lib/sockui/libsockui.a
 
-INCS        := include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include
+INCS        := include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include lib/sockui
 
 SRC_DIR     := $(shell realpath src)
 SRCS        := ai.c component.c gui.c input.c item.c log.c main.c map.c \
@@ -39,7 +40,7 @@ OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS        := $(OBJS:.o=.d)
 
 CC          := gcc
-CFLAGS		:= -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror -std=gnu11
+CFLAGS		:= -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror -std=gnu11 -D_GNU_SOURCE
 CFLAGS      += $(addprefix -I,$(INCS)) -MMD -MP
 LDFLAGS     := $(addprefix -L,$(dir $(LIBS_TARGET)))
 LDFLAGS     += -fsanitize=undefined -fno-sanitize-recover
@@ -77,6 +78,7 @@ $(NAME): $(OBJS) $(LIBS_TARGET)
 
 $(LIBS_TARGET):
 	$(MAKE) -C $(@D)
+	$(info CREATED $@)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(DIR_DUP)
