@@ -3,8 +3,15 @@
 #include "rogue.h"
 #include "item.h"
 
+#include "rlsmenu.h"
+#include "sockui.h"
+
+#define INV_NEW(capacity) { 0, capacity, 0, { 0 } }
+
 typedef int wchar_t;
 typedef struct Religion Religion;
+typedef uint32_t MenuChangeCounter;
+typedef struct FrameData FrameData;
 
 extern ECS_COMPONENT_DECLARE(Position);
 extern ECS_COMPONENT_DECLARE(Inventory);
@@ -22,10 +29,10 @@ extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
 extern ECS_COMPONENT_DECLARE(Logger);
 extern ECS_COMPONENT_DECLARE(Map);
 extern ECS_COMPONENT_DECLARE(InitiativeData);
+extern ECS_COMPONENT_DECLARE(MenuNetWrapper);
 
 extern ECS_TAG_DECLARE(Invisible);
 extern ECS_TAG_DECLARE(MyTurn);
-
 
 typedef struct Position {
     int x, y;
@@ -47,6 +54,7 @@ typedef struct PrayerAction {
 } PrayerAction;
 
 typedef struct Inventory {
+    MenuChangeCounter data_id;
     int capacity;
     int end;
     ecs_entity_t items[INVENTORY_MAX];
@@ -83,7 +91,15 @@ typedef struct InitiativeData {
     int increment;
 } InitiativeData;
 
+typedef struct MenuNetWrapper {
+    MenuChangeCounter last_data_id;
+    sockui_t sui;
+    rlsmenu_gui gui;
+    FrameData *frame_data;
+} MenuNetWrapper;
+
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);
 bool inv_insert(Inventory *inv, ecs_entity_t e);
 bool inv_delete(Inventory *inv, ecs_entity_t e);
+Inventory inv_new(int capacity);
