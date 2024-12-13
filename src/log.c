@@ -7,6 +7,7 @@
 
 Logger *init_logger(Logger *l)
 {
+    l->pending_msgs = 0;
     l->head = 0;
     return l;
 }
@@ -22,6 +23,7 @@ void log_msg(Logger *l, wchar_t *fmt, ...)
     msgbuf[MAX_LOG_MSG_LEN - 1] = L'\0';
     va_end(va);
 
+    l->pending_msgs++;
     wcsncpy(l->msgs[l->head], msgbuf, MAX_LOG_MSG_LEN);
     l->head = (l->head + 1) & (MAX_LOG_MSGS - 1);
 }
@@ -36,11 +38,18 @@ void _log_msg(Logger *l, char *fmt, ...)
     msgbuf[MAX_LOG_MSG_LEN - 1] = L'\0';
     va_end(va);
 
+    l->pending_msgs++;
     mbstowcs(l->msgs[l->head], msgbuf, MAX_LOG_MSG_LEN);
     l->head = (l->head + 1) & (MAX_LOG_MSGS - 1);
 }
 
-const wchar_t *get_last_log_msg(const Logger *l)
+const wchar_t *get_last_log_msg(Logger *l)
 {
+    if (l->pending_msgs > 0) l->pending_msgs--;
     return l->msgs[(l->head - 1) & (MAX_LOG_MSGS - 1)];
+}
+
+bool log_has_pending(const Logger *l)
+{
+    return l->pending_msgs;
 }

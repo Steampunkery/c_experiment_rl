@@ -12,16 +12,19 @@ void Render(ecs_iter_t *it)
 {
     Map *map = ecs_singleton_get_mut(it->world, Map);
     rlsmenu_gui *gui = ecs_singleton_get_mut(it->world, rlsmenu_gui);
-    const Logger *l = ecs_singleton_get(it->world, Logger);
+    Logger *l = ecs_singleton_get_mut(it->world, Logger);
 
     WINDOW *basewin = ((WindowHolder *) it->param)->base;
     WINDOW *logwin = ((WindowHolder *) it->param)->log;
 
     // Logging
-    const wchar_t *message = get_last_log_msg(l);
-    mvwaddwstr(logwin, 0, 0, message);
-    for (int i = wcslen(message); i < MAX_LOG_MSG_LEN; i++)
-        mvwaddch(logwin, 0, i, ' ');
+    static const char blank[] = {[0 ... MAX_LOG_MSG_LEN] = ' '};
+    if (log_has_pending(l)) {
+        const wchar_t *message = get_last_log_msg(l);
+        mvwaddwstr(logwin, 0, 0, message);
+        mvwaddnstr(logwin, 0, wcslen(message), blank, MAX_LOG_MSG_LEN - wcslen(message));
+        wnoutrefresh(logwin);
+    }
 
     // Map
     mvwaddstr(basewin, 0, 0, get_map_str(map));
@@ -45,5 +48,4 @@ void Render(ecs_iter_t *it)
             mvwaddwnstr(basewin, i, 0, str.str + i * str.w, str.w);
 
     wrefresh(basewin);
-    wrefresh(logwin);
 }
