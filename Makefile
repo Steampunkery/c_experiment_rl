@@ -29,12 +29,12 @@ LIBS_TARGET := lib/rlsmenu/rlsmenu.a lib/flecs/flecs.a lib/DijkstraMap/dijkstra.
 
 INCS        := include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include
 
-SRC_DIR     := src
+SRC_DIR     := $(shell realpath src)
 SRCS        := ai.c component.c gui.c input.c item.c log.c main.c map.c \
 			   monster.c observer.c player.c religion.c render.c systems.c
 SRCS        := $(SRCS:%=$(SRC_DIR)/%)
 
-BUILD_DIR   := build
+BUILD_DIR   := $(shell realpath build)
 OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS        := $(OBJS:.o=.d)
 
