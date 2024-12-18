@@ -17,7 +17,7 @@ rlsmenu_slist drop_frame = {
             .title = L"Drop",
             .state = &gui_state[alpha_to_idx('d')],
         },
-        .cbs = &(rlsmenu_cbs) { drop_item_cb, on_complete },
+        .cbs = &(rlsmenu_cbs) { drop_item_cb, on_complete, NULL },
 
         .items = NULL,
         .item_size = 0,
@@ -34,7 +34,7 @@ rlsmenu_list inv_frame = {
             .title = L"Inventory",
             .state = &gui_state[alpha_to_idx('i')],
         },
-        .cbs = &(rlsmenu_cbs) { NULL, on_complete },
+        .cbs = &(rlsmenu_cbs) { NULL, on_complete, NULL },
 
         .items = NULL,
         .item_size = 0,
