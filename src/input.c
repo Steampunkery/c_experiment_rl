@@ -63,3 +63,52 @@ enum rlsmenu_input translate_key(KeyInfo *key)
         return RLSMENU_INVALID_KEY;
     }
 }
+
+#define TS_ENTER 0xa
+#define TS_ESC   0x1b
+#define TS_UP    0x41
+#define TS_DN    0x42
+#define TS_PGUP  0x35
+#define TS_PGDN  0x36
+int translate_sockui(char c, sockui_t *sui)
+{
+    if (c != 'q' && c >= 'a' && c <= 'z') return c - 'a';
+    else if (c >= 'A' && c <= 'Z') return c - 'A';
+
+    int ch;
+    switch (c) {
+        case TS_ENTER:
+            return RLSMENU_SEL;
+        case 'q':
+            return RLSMENU_ESC;
+        case TS_ESC:
+            // Consume the [ if we're in an escape code. If we're not in an
+            // escape code, this should time out (return 256). Note that on
+            // older terminals it takes time to transmit each byte in the
+            // escape sequence, and this doesn't wait at all. If you're using a
+            // physical terminal, I guess you're SOL.
+            if (sockui_recv(sui) == 256) return RLSMENU_ESC;
+            // Return -1 here. This should bubble up elsewhere.
+            if ((ch = sockui_recv(sui)) < 0 || ch > 255) return RLSMENU_INVALID_KEY;
+            switch (ch) {
+                case TS_UP:
+                    return RLSMENU_UP;
+                case TS_DN:
+                    return RLSMENU_DN;
+                case TS_PGUP:
+                    return RLSMENU_PGUP;
+                case TS_PGDN:
+                    return RLSMENU_PGDN;
+                default:
+                    return RLSMENU_INVALID_KEY;
+            }
+        default:
+            return RLSMENU_INVALID_KEY;
+    }
+}
+#undef TS_ENTER
+#undef TS_ESC
+#undef TS_UP
+#undef TS_DN
+#undef TS_PGUP
+#undef TS_PGDN

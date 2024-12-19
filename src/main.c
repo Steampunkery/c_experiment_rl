@@ -5,6 +5,7 @@
 #include "player.h"
 #include "monster.h"
 #include "render.h"
+#include "socket_menu.h"
 #include "systems.h"
 #include "ai.h"
 #include "gui.h"
@@ -75,7 +76,7 @@ int main(int argc, char **argv)
     bool is_player_turn = false;
     while (true) {
         ecs_run(world, render, 0.0, &game_windows);
-        handle_socket_menus(world);
+        handle_socket_menus();
 
         switch (state) {
         case PreTurn:
@@ -113,6 +114,9 @@ int main(int argc, char **argv)
             int idx = alpha_to_idx(key.key);
             assert(idx >= 0);
 
+            if (gui_state[idx].data_id_type == DATA_ID_ENTITY_TARGET)
+                memcpy(&gui_state[idx].data_id_arg, (void *) &g_player_id, DATA_ID_ARG_SIZE);
+
             if (!gui_state[idx].prep_frame(&gui_state[idx], world)) {
                 state = PlayerTurn;
                 continue;
@@ -140,6 +144,7 @@ int main(int argc, char **argv)
     }
 
 done:
+    close_all_socket_menus();
     destroy_map(map);
     rlsmenu_gui_deinit(gui);
     ecs_fini(world);
@@ -159,26 +164,32 @@ CommandType get_command(KeyInfo *key)
 
     key->status = ret;
     key->key = c;
-    switch (ret) {
-    case OK:
-    case KEY_CODE_YES:
-        if (c == KEY_ESCAPE)
-            return QuitCommand;
-        else if (c == KEY_INVALID)
-            return InvalidCommand;
 
-        switch (c) {
-        case 'd':
-            return PlayerGUICommand;
-        case 'i':
-            return GUICommand;
-        case 'm':
-            return GUICommand;
-        default:
-            return HeroCommand;
-        }
-    case ERR:
-        return InvalidCommand;
+    if (c == KEY_HANGUP)
+        assert(!"KEY_HANGUP Received! Very bad!");
+
+    switch (ret) {
+        case OK:
+        case KEY_CODE_YES:
+            if (c == KEY_ESCAPE)
+                return QuitCommand;
+            else if (c == KEY_INVALID)
+                return InvalidCommand;
+
+            switch (c) {
+                case 'd':
+                    return PlayerGUICommand;
+                case 'i':
+                    return GUICommand;
+                case 'm':
+                    return GUICommand;
+                case 'D':
+                    return GUICommand;
+                default:
+                    return HeroCommand;
+            }
+        case ERR:
+            return InvalidCommand;
     }
 
     return InvalidCommand;

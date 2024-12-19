@@ -28,11 +28,14 @@ LIBS        := m uncursed glib-2.0 dijkstra rlsmenu flecs sockui
 LIBS_TARGET := lib/rlsmenu/librlsmenu.a lib/flecs/libflecs.a \
 			   lib/DijkstraMap/libdijkstra.a lib/sockui/libsockui.a
 
+ROOT_DIR    := $(shell realpath .)
 INCS        := include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include lib/sockui
+INCS        := $(INCS:%=$(ROOT_DIR)/%)
 
 SRC_DIR     := $(shell realpath src)
 SRCS        := ai.c component.c gui.c input.c item.c log.c main.c map.c \
-			   monster.c observer.c player.c religion.c render.c systems.c
+			   monster.c observer.c player.c religion.c render.c systems.c \
+			   socket_menu.c
 SRCS        := $(SRCS:%=$(SRC_DIR)/%)
 
 BUILD_DIR   := $(shell realpath build)

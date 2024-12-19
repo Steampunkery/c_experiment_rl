@@ -10,7 +10,6 @@
 
 typedef int wchar_t;
 typedef struct Religion Religion;
-typedef uint32_t MenuChangeCounter;
 typedef struct FrameData FrameData;
 
 extern ECS_COMPONENT_DECLARE(Position);
@@ -52,6 +51,8 @@ typedef struct PrayerAction {
     char dummy;
 } PrayerAction;
 
+// TODO: Create relationship (InInventory, entityID) so that we can use queries
+// to get items in inventories (it's more generic)
 typedef struct Inventory {
     MenuChangeCounter data_id;
     int capacity;
@@ -92,6 +93,8 @@ typedef struct InitiativeData {
 
 typedef struct MenuNetWrapper {
     MenuChangeCounter last_data_id;
+    uint16_t client_port;
+
     sockui_t sui;
     rlsmenu_gui gui;
     FrameData *frame_data;

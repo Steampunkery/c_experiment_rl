@@ -13,3 +13,4 @@ typedef struct KeyInfo {
 
 InputType get_input_type(KeyInfo *key);
 enum rlsmenu_input translate_key(KeyInfo *key);
+int translate_sockui(char c, sockui_t *sui);
