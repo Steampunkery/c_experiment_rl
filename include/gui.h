@@ -1,13 +1,13 @@
 #pragma once
 #include <stdbool.h>
-#include <poll.h>
 #include <stdint.h>
 
-#define NPOLLS 1
+#define DATA_ID_ARG_SIZE 8
 
 typedef struct ecs_world_t ecs_world_t;
 typedef struct KeyInfo KeyInfo;
 typedef struct rlsmenu_frame rlsmenu_frame;
+typedef enum { DATA_ID_ENTITY_TARGET, DATA_ID_STATIC } data_id_t;
 
 typedef struct FrameData FrameData;
 struct FrameData {
@@ -17,16 +17,9 @@ struct FrameData {
     bool consumes_turn;
     bool (*prep_frame)(FrameData *, ecs_world_t *);
     uint32_t (*get_data_id)(FrameData *);
+    // Must be the same size as DATA_ID_ARG_SIZE
+    uint64_t data_id_arg;
+    data_id_t data_id_type;
 };
 
-typedef struct MenuNetWrapper MenuNetWrapper;
-typedef struct {
-    struct pollfd pollers[NPOLLS];
-    MenuNetWrapper *menus[NPOLLS];
-    int n_menus;
-} PollData;
-
 extern FrameData gui_state[52];
-extern PollData poll_data;
-
-void handle_socket_menus(ecs_world_t *);
