@@ -56,8 +56,7 @@ void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e)
     }
 
     if (e == g_player_id) {
-        Logger *l = ecs_singleton_get_mut(world, Logger);
-        log_msg(l, L"%S grants you %S!", r->deity_name, boon->name);
+        log_msg(&g_game_log, L"%S grants you %S!", r->deity_name, boon->name);
     }
 
     rel->favors_left--;

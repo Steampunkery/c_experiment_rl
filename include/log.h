@@ -1,5 +1,6 @@
 #pragma once
 #include "rogue.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -18,3 +19,6 @@ void log_msg(Logger *l, wchar_t *fmt, ...);
 void _log_msg(Logger *l, char *fmt, ...);
 const wchar_t *get_last_log_msg(Logger *l);
 bool log_has_pending(const Logger *l);
+
+extern Logger g_game_log;
+extern Logger g_debug_log;

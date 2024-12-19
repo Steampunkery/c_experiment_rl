@@ -5,10 +5,12 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+Logger g_game_log;
+Logger g_debug_log;
+
 Logger *init_logger(Logger *l)
 {
-    l->pending_msgs = 0;
-    l->head = 0;
+    *l = (Logger) { 0, 0, { { 0 } } };
     return l;
 }
 

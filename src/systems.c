@@ -113,8 +113,7 @@ void Prayer(ecs_iter_t *it)
     for (int i = 0; i < it->count; i++) {
         if (!ecs_has_id(it->world, it->entities[i], ecs_id(Religious))) {
             if (it->entities[i] == g_player_id) {
-                Logger *l = ecs_singleton_get_mut(it->world, Logger);
-                log_msg(l, L"Your supplication falls upon deaf ears");
+                log_msg(&g_game_log, L"Your supplication falls upon deaf ears");
             }
         } else {
             rel = ecs_get_mut(it->world, it->entities[i], Religious);
@@ -123,8 +122,7 @@ void Prayer(ecs_iter_t *it)
                 bestow_boon(it->world, rel, it->entities[i]);
             } else {
                 if (it->entities[i] == g_player_id) {
-                    Logger *l = ecs_singleton_get_mut(it->world, Logger);
-                    log_msg(l, L"%S is indifferent to your plea", rel->religion->deity_name);
+                    log_msg(&g_game_log, L"%S is indifferent to your plea", rel->religion->deity_name);
                 }
             }
         }
