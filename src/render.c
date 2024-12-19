@@ -12,15 +12,14 @@ void Render(ecs_iter_t *it)
 {
     Map *map = ecs_singleton_get_mut(it->world, Map);
     rlsmenu_gui *gui = ecs_singleton_get_mut(it->world, rlsmenu_gui);
-    Logger *l = ecs_singleton_get_mut(it->world, Logger);
 
     WINDOW *basewin = ((WindowHolder *) it->param)->base;
     WINDOW *logwin = ((WindowHolder *) it->param)->log;
 
     // Logging
     static const char blank[] = {[0 ... MAX_LOG_MSG_LEN] = ' '};
-    if (log_has_pending(l)) {
-        const wchar_t *message = get_last_log_msg(l);
+    if (log_has_pending(&g_game_log)) {
+        const wchar_t *message = get_last_log_msg(&g_game_log);
         mvwaddwstr(logwin, 0, 0, message);
         mvwaddnstr(logwin, 0, wcslen(message), blank, MAX_LOG_MSG_LEN - wcslen(message));
         wnoutrefresh(logwin);

@@ -2,7 +2,6 @@
 
 #include "map.h"
 #include "gui.h"
-#include "log.h"
 
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Inventory);
@@ -18,7 +17,6 @@ ECS_COMPONENT_DECLARE(PrayerAction);
 ECS_COMPONENT_DECLARE(SeeInvisible);
 ECS_COMPONENT_DECLARE(Renderable);
 ECS_COMPONENT_DECLARE(rlsmenu_gui);
-ECS_COMPONENT_DECLARE(Logger);
 ECS_COMPONENT_DECLARE(Map);
 ECS_COMPONENT_DECLARE(InitiativeData);
 ECS_COMPONENT_DECLARE(MenuNetWrapper);
@@ -48,7 +46,6 @@ void register_components(ecs_world_t *world)
 
     ECS_COMPONENT_DEFINE(world, Map);
     ECS_COMPONENT_DEFINE(world, rlsmenu_gui);
-    ECS_COMPONENT_DEFINE(world, Logger);
 }
 
 bool inv_full(const Inventory *inv)

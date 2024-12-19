@@ -133,6 +133,7 @@ static void mnw_redraw(MenuNetWrapper *mnw)
 // TODO: Explicit way to close socket menu by user
 void handle_socket_menus(ecs_world_t *world)
 {
+    (void) world;
     if (!poll_data.n_menus) return;
 
     int n_events, i, ret;
@@ -152,15 +153,14 @@ void handle_socket_menus(ecs_world_t *world)
         if (*mnw && (*mnw)->sui.client_fd >= 0)
             mnw_redraw(*mnw);
 
-        Logger *l = ecs_singleton_get_mut(world, Logger);
         if (pfd->fd < 0 || !pfd->revents) continue;
         if (pfd->revents & POLLIN) {
             ret = sockui_attach_client(&(*mnw)->sui);
 
             if (ret == SOCKUI_ESYS) // FIXME: better error handling
-                _log_msg(l, strerror(errno));
+                _log_msg(&g_game_log, strerror(errno));
             else
-                log_msg(l, L"Client attached...");
+                log_msg(&g_game_log, L"Client attached...");
 
             pfd->events = 0; // Stop receiving POLLIN
         } else { // POLLERR, POLLNVAL, POLLHUP
@@ -247,8 +247,8 @@ static enum rlsmenu_cb_res socket_menu_cb(rlsmenu_frame *frame, void *f)
     err = getsockname(mnw->sui.serv_fd, (void *) &sock_addr, &len);
     assert(!err);
 
-    Logger *l = ecs_singleton_get_mut(data->world, Logger);
-    log_msg(l, L"Socket available on port %d.", ntohs(sock_addr.sin_port));
+    log_msg(&g_game_log, L"Socket available on port %d.", ntohs(sock_addr.sin_port));
+    log_msg(&g_debug_log, L"Opened socket on port %d", ntohs(sock_addr.sin_port));
 
     return RLSMENU_CB_SUCCESS;
 }

@@ -58,9 +58,10 @@ int main(int argc, char **argv)
     Map *map = ecs_singleton_get_mut(world, Map);
     new_arena(map, LINES - 2, COLS);
 
-    Logger *logger = ecs_singleton_get_mut(world, Logger);
-    init_logger(logger);
-    log_msg(logger, L"Test Message");
+    init_logger(&g_game_log);
+    init_logger(&g_debug_log);
+    log_msg(&g_game_log, L"Test Message");
+    log_msg(&g_debug_log, L"Debug Test Message");
 
     rlsmenu_gui *gui = ecs_singleton_get_mut(world, rlsmenu_gui);
     rlsmenu_gui_init(gui);
