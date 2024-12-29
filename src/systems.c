@@ -26,7 +26,7 @@ void register_systems(ecs_world_t *world)
     ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, PrayerAction, InitiativeData);
 
     render = ecs_system(world, {
-        .query.filter.terms = {
+        .query.terms = {
             { .id = ecs_id(Position) },
             { .id = ecs_id(Glyph) },
             { .id = ecs_id(Renderable) },
@@ -37,7 +37,7 @@ void register_systems(ecs_world_t *world)
 
 void Initiative(ecs_iter_t *it)
 {
-    InitiativeData *init = ecs_field(it, InitiativeData, 1);
+    InitiativeData *init = ecs_field(it, InitiativeData, 0);
 
     for (int i = 0; i < it->count; i++) {
         init[i].points += init[i].increment;
@@ -50,9 +50,9 @@ void Initiative(ecs_iter_t *it)
 
 void Move(ecs_iter_t *it)
 {
-    Position *pos = ecs_field(it, Position, 1);
-    MovementAction *mov = ecs_field(it, MovementAction, 2);
-    InitiativeData *init = ecs_field(it, InitiativeData, 3);
+    Position *pos = ecs_field(it, Position, 0);
+    MovementAction *mov = ecs_field(it, MovementAction, 1);
+    InitiativeData *init = ecs_field(it, InitiativeData, 2);
 
     for (int i = 0; i < it->count; i++) {
         pos[i].x += mov[i].x;
@@ -64,7 +64,7 @@ void Move(ecs_iter_t *it)
 
 void AI(ecs_iter_t *it)
 {
-    AIController *aic = ecs_field(it, AIController, 1);
+    AIController *aic = ecs_field(it, AIController, 0);
 
     for (int i = 0; i < it->count; i++) {
         aic[i].ai_func(it->world, it->entities[i], aic[i].state);
@@ -73,10 +73,10 @@ void AI(ecs_iter_t *it)
 
 void Pickup(ecs_iter_t *it)
 {
-    Inventory *inv = ecs_field(it, Inventory, 1);
-    PickupAction *pa = ecs_field(it, PickupAction, 2);
-    Position *pos = ecs_field(it, Position, 3);
-    InitiativeData *init = ecs_field(it, InitiativeData, 4);
+    Inventory *inv = ecs_field(it, Inventory, 0);
+    PickupAction *pa = ecs_field(it, PickupAction, 1);
+    Position *pos = ecs_field(it, Position, 2);
+    InitiativeData *init = ecs_field(it, InitiativeData, 3);
 
     for (int i = 0; i < it->count; i++) {
         if (!inv_full(&inv[i])) {
@@ -90,10 +90,10 @@ void Pickup(ecs_iter_t *it)
 
 void Drop(ecs_iter_t *it)
 {
-    Inventory *inv = ecs_field(it, Inventory, 1);
-    DropAction *da = ecs_field(it, DropAction, 2);
-    Position *pos = ecs_field(it, Position, 3);
-    InitiativeData *init = ecs_field(it, InitiativeData, 4);
+    Inventory *inv = ecs_field(it, Inventory, 0);
+    DropAction *da = ecs_field(it, DropAction, 1);
+    Position *pos = ecs_field(it, Position, 2);
+    InitiativeData *init = ecs_field(it, InitiativeData, 3);
 
     for (int i = 0; i < it->count; i++) {
         assert(da[i].entity != 0);
@@ -107,7 +107,7 @@ void Drop(ecs_iter_t *it)
 
 void Prayer(ecs_iter_t *it)
 {
-    InitiativeData *init = ecs_field(it, InitiativeData, 2);
+    InitiativeData *init = ecs_field(it, InitiativeData, 1);
 
     Religious *rel;
     for (int i = 0; i < it->count; i++) {

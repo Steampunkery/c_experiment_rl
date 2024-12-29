@@ -47,4 +47,5 @@ bool is_passable(const Map *map, int x, int y);
 int map_contains(const Map *map, int x, int y);
 bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off);
 
+void dijkstra_init(ecs_world_t *world);
 void update_dijkstra_maps(ecs_world_t *world, Map *map);

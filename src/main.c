@@ -56,7 +56,8 @@ int main(int argc, char **argv)
     register_systems(world);
     register_observers(world);
 
-    Map *map = ecs_singleton_get_mut(world, Map);
+    dijkstra_init(world);
+    Map *map = ecs_singleton_ensure(world, Map);
     new_arena(map, LINES - 2, COLS);
 
     init_logger(&g_game_log);
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
     log_msg(&g_game_log, L"Test Message");
     log_msg(&g_debug_log, L"Debug Test Message");
 
-    rlsmenu_gui *gui = ecs_singleton_get_mut(world, rlsmenu_gui);
+    rlsmenu_gui *gui = ecs_singleton_ensure(world, rlsmenu_gui);
     rlsmenu_gui_init(gui);
 
     temp_arena_init(world, map);

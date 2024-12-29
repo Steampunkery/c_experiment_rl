@@ -20,7 +20,7 @@ Item mjolnir = {
 
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
-    Map *map = ecs_singleton_get_mut(world, Map);
+    Map *map = ecs_singleton_ensure(world, Map);
     if (!map_contains(map, x, y)) return 0;
 
     GArray *items = map->items[y][x];
@@ -35,7 +35,7 @@ ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 // Expects the existence of a Map
 ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
-    Map *map = ecs_singleton_get_mut(world, Map);
+    Map *map = ecs_singleton_ensure(world, Map);
     if (!map_contains(map, x, y) || !map->items[y][x]) return 0;
 
     GArray *items = map->items[y][x];
@@ -63,7 +63,7 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 
 ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, size_t size)
 {
-    ecs_entity_t item = ecs_new(world, 0);
+    ecs_entity_t item = ecs_new(world);
     ecs_set(world, item, Glyph, { glyph });
     ecs_set(world, item, Renderable, { true });
 

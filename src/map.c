@@ -5,6 +5,8 @@
 
 #include <glib.h>
 
+static ecs_query_t *item_q;
+
 static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap);
 static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits);
 
@@ -130,6 +132,19 @@ bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off)
     return 1;
 }
 
+void dijkstra_init(ecs_world_t *world)
+{
+    // clang-format off
+    item_q = ecs_query(world, {
+        .terms = {
+            { .id = ecs_id(Item) },
+            { .id = ecs_id(Position) },
+        },
+        .cache_kind = EcsQueryCacheAll
+    });
+    // clang-format on
+}
+
 /*
  * TODO: Consider separating dijkstra maps by type (mob, item, etc) then
  * having a system to handle each type of map. Using filters in a switch
@@ -150,20 +165,11 @@ void update_dijkstra_maps(ecs_world_t *world, Map *map)
 
 static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap)
 {
-    // clang-format off
-    ecs_filter_t *f = ecs_filter(world, {
-        .terms = {
-            { ecs_id(Item) },
-            { ecs_id(Position) },
-        }
-    });
-    // clang-format on
-
     uint32_t n_sources = 0;
-    ecs_iter_t it = ecs_filter_iter(world, f);
-    while (ecs_filter_next(&it)) {
-        Item *item = ecs_field(&it, Item, 1);
-        Position *pos = ecs_field(&it, Position, 2);
+    ecs_iter_t it = ecs_query_iter(world, item_q);
+    while (ecs_query_next(&it)) {
+        Item *item = ecs_field(&it, Item, 0);
+        Position *pos = ecs_field(&it, Position, 1);
 
         for (int i = 0; i < it.count; i++)
             if ((int) item[i].type == dm_wrap->subtype)
@@ -171,8 +177,6 @@ static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm
     }
 
     build_dijkstra_map((DijkstraMap *) dm_wrap, map->dijkstra_sources, n_sources, &map->dm_arena);
-
-    ecs_filter_fini(f);
 }
 
 static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits)

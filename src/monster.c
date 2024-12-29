@@ -9,7 +9,7 @@
 
 ecs_entity_t init_goblin(ecs_world_t *world, int x, int y)
 {
-    ecs_entity_t goblin = ecs_new(world, 0);
+    ecs_entity_t goblin = ecs_new(world);
     ecs_set(world, goblin, Position, { x, y });
     ecs_set(world, goblin, Glyph, { 'g' });
     ecs_set(world, goblin, Renderable, { true });

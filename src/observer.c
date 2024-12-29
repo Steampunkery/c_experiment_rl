@@ -43,22 +43,23 @@ void RemoveInvisible(ecs_iter_t *it)
 void ToggleSeeInvisible(ecs_world_t *world, bool toggle)
 {
     // clang-format off
-    ecs_filter_t *f = ecs_filter(world, {
+    ecs_query_t *f = ecs_query(world, {
         .terms = {
-            { ecs_id(Invisible) },
-        }
+            { .id = ecs_id(Invisible) },
+        },
+        .cache_kind = EcsQueryCacheNone
     });
     // clang-format on
 
-    ecs_iter_t it = ecs_filter_iter(world, f);
-    while (ecs_filter_next(&it)) {
+    ecs_iter_t it = ecs_query_iter(world, f);
+    while (ecs_query_next(&it)) {
         for (int i = 0; i < it.count; i++) {
             Renderable *renderable = ecs_get_mut(world, it.entities[i], Renderable);
             renderable->should_render = toggle;
         }
     }
 
-    ecs_filter_fini(f);
+    ecs_query_fini(f);
 }
 
 void AddSeeInvisible(ecs_iter_t *it)

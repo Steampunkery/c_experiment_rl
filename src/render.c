@@ -10,8 +10,8 @@
 
 void Render(ecs_iter_t *it)
 {
-    Map *map = ecs_singleton_get_mut(it->world, Map);
-    rlsmenu_gui *gui = ecs_singleton_get_mut(it->world, rlsmenu_gui);
+    Map *map = ecs_singleton_ensure(it->world, Map);
+    rlsmenu_gui *gui = ecs_singleton_ensure(it->world, rlsmenu_gui);
 
     WINDOW *basewin = ((WindowHolder *) it->param)->base;
     WINDOW *logwin = ((WindowHolder *) it->param)->log;
@@ -30,9 +30,9 @@ void Render(ecs_iter_t *it)
 
     // Entities
     while (ecs_query_next(it)) {
-        Position *pos = ecs_field(it, Position, 1);
-        Glyph *glyph = ecs_field(it, Glyph, 2);
-        Renderable *renderable = ecs_field(it, Renderable, 3);
+        Position *pos = ecs_field(it, Position, 0);
+        Glyph *glyph = ecs_field(it, Glyph, 1);
+        Renderable *renderable = ecs_field(it, Renderable, 2);
 
         for (int i = 0; i < it->count; i++) {
             if (renderable[i].should_render)
