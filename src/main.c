@@ -10,6 +10,8 @@
 #include "ai.h"
 #include "gui.h"
 #include "log.h"
+#include "prefab.h"
+#include "item.h"
 
 #include "rlsmenu.h"
 #include "flecs.h"
@@ -50,20 +52,23 @@ int main(int argc, char **argv)
         .log = logwin,
     };
 
+    init_logger(&g_game_log);
+    init_logger(&g_debug_log);
+    log_msg(&g_game_log, L"Test Message");
+    log_msg(&g_debug_log, L"Debug Test Message");
+
     world = ecs_init();
 
     register_components(world);
     register_systems(world);
     register_observers(world);
+    register_prefabs(world);
 
     dijkstra_init(world);
     Map *map = ecs_singleton_ensure(world, Map);
     new_arena(map, LINES - 2, COLS);
 
-    init_logger(&g_game_log);
-    init_logger(&g_debug_log);
-    log_msg(&g_game_log, L"Test Message");
-    log_msg(&g_debug_log, L"Debug Test Message");
+    item_init(world);
 
     rlsmenu_gui *gui = ecs_singleton_ensure(world, rlsmenu_gui);
     rlsmenu_gui_init(gui);
@@ -213,67 +218,43 @@ void temp_arena_init(ecs_world_t *world, Map *map)
     ecs_set(world, goblin3, AIController, { greedy_ai, map });
     make_invisible(world, goblin3);
 
-    ecs_entity_t gold1 = create_item(world, '$',
-                                     (Item *) &(GoldItem){
-                                             .super = { ITEM_TYPE_GOLD, L"Gold" },
-                                             .amount = 300,
-                                     },
-                                     sizeof(GoldItem));
+    ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold1, 1, 1);
 
-    ecs_entity_t gold2 = create_item(world, '$',
-                                     (Item *) &(GoldItem){
-                                             .super = { ITEM_TYPE_GOLD, L"Gold" },
-                                             .amount = 300,
-                                     },
-                                     sizeof(GoldItem));
+    ecs_entity_t gold2 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold2, map->cols - 2, 1);
 
-    ecs_entity_t gold3 = create_item(world, '$',
-                                     (Item *) &(GoldItem){
-                                             .super = { ITEM_TYPE_GOLD, L"Gold" },
-                                             .amount = 300,
-                                     },
-                                     sizeof(GoldItem));
+    ecs_entity_t gold3 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold3, map->cols - 2, map->rows - 2);
 
-    ecs_entity_t gold4 = create_item(world, '$',
-                                     (Item *) &(GoldItem){
-                                             .super = { ITEM_TYPE_GOLD, L"Gold" },
-                                             .amount = 300,
-                                     },
-                                     sizeof(GoldItem));
+    ecs_entity_t gold4 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold4, 1, map->rows - 2);
 
-    ecs_entity_t item1 = create_item(world, 'a',
-                                     (Item *) &(FoodItem){
-                                             .super = { ITEM_TYPE_FOOD, L"Apple" },
-                                             .satiation = 42,
-                                     },
-                                     sizeof(FoodItem));
+    ecs_entity_t item1 = ecs_insert(world,
+            { ecs_isa(FoodItem), NULL },
+            ecs_value(Satiation, { 42 }),
+            ecs_value(Name, { L"Apple" })
+    );
     place_item(world, item1, 18, 18);
 
-    ecs_entity_t item2 = create_item(world, 'o',
-                                     (Item *) &(FoodItem){
-                                             .super = { ITEM_TYPE_FOOD, L"Orange" },
-                                             .satiation = 42,
-                                     },
-                                     sizeof(FoodItem));
+    ecs_entity_t item2 = ecs_insert(world,
+            { ecs_isa(FoodItem), NULL },
+            ecs_value(Satiation, { 42 }),
+            ecs_value(Name, { L"Orange" })
+    );
     place_item(world, item2, 18, 19);
 
-    ecs_entity_t item3 = create_item(world, 'b',
-                                     (Item *) &(FoodItem){
-                                             .super = { ITEM_TYPE_FOOD, L"Banana" },
-                                             .satiation = 42,
-                                     },
-                                     sizeof(FoodItem));
+    ecs_entity_t item3 = ecs_insert(world,
+            { ecs_isa(FoodItem), NULL },
+            ecs_value(Satiation, { 42 }),
+            ecs_value(Name, { L"Banana" })
+    );
     place_item(world, item3, 18, 20);
 
-    ecs_entity_t item4 = create_item(world, 'k',
-                                     (Item *) &(FoodItem){
-                                             .super = { ITEM_TYPE_FOOD, L"Kiwi" },
-                                             .satiation = 42,
-                                     },
-                                     sizeof(FoodItem));
+    ecs_entity_t item4 = ecs_insert(world,
+            { ecs_isa(FoodItem), NULL },
+            ecs_value(Satiation, { 42 }),
+            ecs_value(Name, { L"Kiwi" })
+    );
     place_item(world, item4, 18, 21);
 }

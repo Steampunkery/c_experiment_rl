@@ -1,6 +1,7 @@
 #include "religion.h"
 
 #include "component.h"
+#include "item.h"
 #include "log.h"
 
 #include "flecs.h"
@@ -29,7 +30,6 @@ ItemBoon IB_Mjolnir = {
         .type = BOONTYPE_ITEM,
     },
     .item = &mjolnir,
-    .size = sizeof(mjolnir),
 };
 
 // Add a follower to a given religion
@@ -71,7 +71,5 @@ void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e)
 
 void bestow_item(ecs_world_t *world, ItemBoon *boon, const Position *pos)
 {
-    ecs_entity_t item =
-            create_item(world, get_item_type_glyph(boon->item->type), boon->item, boon->size);
-    place_item(world, item, pos->x, pos->y);
+    place_item(world, ecs_clone(world, 0, *boon->item, true), pos->x, pos->y);
 }

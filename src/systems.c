@@ -4,6 +4,7 @@
 #include "render.h"
 #include "log.h"
 #include "religion.h"
+#include "item.h"
 
 #include "flecs.h"
 
@@ -116,7 +117,7 @@ void Prayer(ecs_iter_t *it)
                 log_msg(&g_game_log, L"Your supplication falls upon deaf ears");
             }
         } else {
-            rel = ecs_get_mut(it->world, it->entities[i], Religious);
+            rel = ecs_ensure(it->world, it->entities[i], Religious);
             Religion *r = rel->religion;
             if (rel->favors_left > 0 && r->boons[r->boon_idx]) {
                 bestow_boon(it->world, rel, it->entities[i]);

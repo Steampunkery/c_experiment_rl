@@ -1,8 +1,10 @@
 #include "map.h"
 
 #include "component.h"
+#include "prefab.h"
 #include "rogue.h"
 
+#include "flecs.h"
 #include <glib.h>
 
 static ecs_query_t *item_q;
@@ -35,7 +37,7 @@ Map *new_arena(Map *map, int rows, int cols)
     map->dijkstra_maps[0] = (DMWrapper){
         .dm = { 0 },
         .type = DM_TYPE_Item,
-        .subtype = ITEM_TYPE_GOLD,
+        .subtype = GoldItem,
     };
 
     // TODO: Make a heuristic for arena size
@@ -137,15 +139,16 @@ void dijkstra_init(ecs_world_t *world)
     // clang-format off
     item_q = ecs_query(world, {
         .terms = {
-            { .id = ecs_id(Item) },
+            { .id = ecs_pair(EcsIsA, Item) },
             { .id = ecs_id(Position) },
         },
-        .cache_kind = EcsQueryCacheAll
+        .cache_kind = EcsQueryCacheAuto
     });
     // clang-format on
 }
 
 /*
+ * TODO: Find a way to not call this every frame
  * TODO: Consider separating dijkstra maps by type (mob, item, etc) then
  * having a system to handle each type of map. Using filters in a switch
  * this way feels like a hack.
@@ -168,11 +171,10 @@ static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm
     uint32_t n_sources = 0;
     ecs_iter_t it = ecs_query_iter(world, item_q);
     while (ecs_query_next(&it)) {
-        Item *item = ecs_field(&it, Item, 0);
         Position *pos = ecs_field(&it, Position, 1);
 
         for (int i = 0; i < it.count; i++)
-            if ((int) item[i].type == dm_wrap->subtype)
+            if (ecs_has_pair(world, it.entities[i], EcsIsA, dm_wrap->subtype))
                 map->dijkstra_sources[n_sources++] = XY_TO_IDX(pos[i].x, pos[i].y, map->cols);
     }
 

@@ -6,10 +6,10 @@
 typedef struct Religious Religious;
 typedef struct Position Position;
 typedef struct ecs_world_t ecs_world_t;
-typedef struct Item Item;
 
 enum boon_type { BOONTYPE_ABILITY, BOONTYPE_ITEM };
 
+// TODO: Rewrite the boon system with better ECS principles (?)
 typedef struct Boon {
     wchar_t name[NAME_LEN_MAX];
     enum boon_type type;
@@ -23,8 +23,7 @@ typedef struct AbilityBoon {
 
 typedef struct ItemBoon {
     Boon super;
-    Item *item;
-    size_t size;
+    ecs_entity_t *item;
 } ItemBoon;
 
 typedef struct Religion {

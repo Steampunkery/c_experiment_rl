@@ -1,7 +1,6 @@
 #pragma once
 #include "flecs.h"
 #include "rogue.h"
-#include "item.h"
 
 #include "rlsmenu.h"
 #include "sockui.h"
@@ -12,14 +11,18 @@ typedef int wchar_t;
 typedef struct Religion Religion;
 typedef struct FrameData FrameData;
 
+extern ECS_COMPONENT_DECLARE(Name);
 extern ECS_COMPONENT_DECLARE(Position);
+extern ECS_COMPONENT_DECLARE(Weight);
+extern ECS_COMPONENT_DECLARE(Value);
+extern ECS_COMPONENT_DECLARE(Satiation);
+extern ECS_COMPONENT_DECLARE(Stack);
 extern ECS_COMPONENT_DECLARE(Inventory);
 extern ECS_COMPONENT_DECLARE(MovementAction);
 extern ECS_COMPONENT_DECLARE(PickupAction);
 extern ECS_COMPONENT_DECLARE(DropAction);
 extern ECS_COMPONENT_DECLARE(AIController);
 extern ECS_COMPONENT_DECLARE(Glyph);
-extern ECS_COMPONENT_DECLARE(Item);
 extern ECS_COMPONENT_DECLARE(Religious);
 extern ECS_COMPONENT_DECLARE(PrayerAction);
 extern ECS_COMPONENT_DECLARE(SeeInvisible);
@@ -32,9 +35,21 @@ extern ECS_COMPONENT_DECLARE(MenuNetWrapper);
 extern ECS_TAG_DECLARE(Invisible);
 extern ECS_TAG_DECLARE(MyTurn);
 
+typedef struct Name {
+    wchar_t *s;
+} Name;
+
 typedef struct Position {
     int x, y;
 } Position;
+
+typedef struct Weight {
+    float val;
+} Weight, Value, Satiation;
+
+typedef struct Stack {
+    int val;
+} Stack;
 
 typedef struct MovementAction {
     int x, y;

@@ -27,7 +27,7 @@ void AddInvisible(ecs_iter_t *it)
     bool si = ecs_has_id(it->world, g_player_id, ecs_id(SeeInvisible));
 
     for (int i = 0; i < it->count; i++) {
-        Renderable *renderable = ecs_get_mut(it->world, it->entities[i], Renderable);
+        Renderable *renderable = ecs_ensure(it->world, it->entities[i], Renderable);
         renderable->should_render = false || !!si;
     }
 }
@@ -35,7 +35,7 @@ void AddInvisible(ecs_iter_t *it)
 void RemoveInvisible(ecs_iter_t *it)
 {
     for (int i = 0; i < it->count; i++) {
-        Renderable *renderable = ecs_get_mut(it->world, it->entities[i], Renderable);
+        Renderable *renderable = ecs_ensure(it->world, it->entities[i], Renderable);
         renderable->should_render = true;
     }
 }
@@ -54,7 +54,7 @@ void ToggleSeeInvisible(ecs_world_t *world, bool toggle)
     ecs_iter_t it = ecs_query_iter(world, f);
     while (ecs_query_next(&it)) {
         for (int i = 0; i < it.count; i++) {
-            Renderable *renderable = ecs_get_mut(world, it.entities[i], Renderable);
+            Renderable *renderable = ecs_ensure(world, it.entities[i], Renderable);
             renderable->should_render = toggle;
         }
     }

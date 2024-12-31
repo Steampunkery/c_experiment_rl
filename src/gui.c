@@ -209,7 +209,7 @@ static bool prep_menu_select_frame(FrameData *data, ecs_world_t *world)
 static bool prep_inv_frame(FrameData *data, ecs_world_t *world)
 {
     rlsmenu_list_shared *s = (rlsmenu_list_shared *) data->frame;
-    Inventory *inv = ecs_get_mut(world, (ecs_entity_t) data->data_id_arg, Inventory);
+    Inventory *inv = ecs_ensure(world, (ecs_entity_t) data->data_id_arg, Inventory);
     data->world = world;
 
     s->items = inv->items;
@@ -217,10 +217,10 @@ static bool prep_inv_frame(FrameData *data, ecs_world_t *world)
     s->n_items = inv->end;
     s->item_names = malloc(sizeof(*s->item_names) * s->n_items);
 
-    Item *item;
+    Name *name;
     for (int i = 0; i < inv->end; i++) {
-        item = ecs_get_mut(data->world, inv->items[i], Item);
-        s->item_names[i] = item->name;
+        name = ecs_ensure(data->world, inv->items[i], Name);
+        s->item_names[i] = name->s;
     }
 
     return true;
@@ -241,7 +241,7 @@ static bool prep_logger_frame(FrameData *data, ecs_world_t *world)
 
 static uint32_t get_inv_data_id(FrameData *data)
 {
-    Inventory *inv = ecs_get_mut(data->world, (ecs_entity_t) data->data_id_arg, Inventory);
+    Inventory *inv = ecs_ensure(data->world, (ecs_entity_t) data->data_id_arg, Inventory);
     return inv->data_id;
 }
 

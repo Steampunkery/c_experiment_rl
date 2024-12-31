@@ -2,21 +2,18 @@
 
 #include "map.h"
 #include "component.h"
+#include "prefab.h"
 
 #include "flecs.h"
 #include <glib.h>
 
-wchar_t item_type_to_glyph[] = {
-    [ITEM_TYPE_FOOD] = '%',
-    [ITEM_TYPE_GOLD] = '$',
-    [ITEM_TYPE_WEAPON] = '/',
-};
+// TODO: Consider making this a prefab
+ecs_entity_t mjolnir;
 
-// TODO: Make this a true weapon subtype
-Item mjolnir = {
-    .type = ITEM_TYPE_WEAPON,
-    .name = L"Mjolnir",
-};
+void item_init(ecs_world_t *world)
+{
+    mjolnir = ecs_insert(world, { ecs_isa(WeaponItem), NULL }, ecs_value(Name, { L"Mjolnir" }));
+}
 
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
@@ -61,23 +58,7 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
     return e;
 }
 
-ecs_entity_t create_item(ecs_world_t *world, wchar_t glyph, const Item *data, size_t size)
-{
-    ecs_entity_t item = ecs_new(world);
-    ecs_set(world, item, Glyph, { glyph });
-    ecs_set(world, item, Renderable, { true });
-
-    ecs_set_id(world, item, ecs_id(Item), size, data);
-
-    return item;
-}
-
-wchar_t get_item_type_glyph(enum item_type item)
-{
-    return item_type_to_glyph[item];
-}
-
-ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type type, int x, int y)
+ecs_entity_t get_typed_item_at_pos(ecs_world_t *world, Map *map, ecs_entity_t type, int x, int y)
 {
     if (!map_contains(map, x, y)) return 0;
 
@@ -87,8 +68,7 @@ ecs_entity_t get_item_type_at_pos(ecs_world_t *world, Map *map, enum item_type t
     ecs_entity_t e;
     for (guint i = 0; i < items->len; i++) {
         e = g_array_index(items, ecs_entity_t, i);
-        const Item *item = ecs_get(world, e, Item);
-        if (item->type == type) return e;
+        if (ecs_has_pair(world, e, EcsIsA, type)) return e;
     }
 
     return 0;

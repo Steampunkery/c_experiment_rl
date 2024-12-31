@@ -2,6 +2,8 @@
 
 #include "monster.h"
 #include "map.h"
+#include "item.h"
+#include "prefab.h"
 
 #include "flecs.h"
 
@@ -29,7 +31,7 @@ void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
         MovementAction ma = dm_flow_downhill(dm, map, pos);
         try_move_entity(world, e, &ma);
     } else {
-        ecs_entity_t gold = get_item_type_at_pos(world, map, ITEM_TYPE_GOLD, pos->x, pos->y);
+        ecs_entity_t gold = get_typed_item_at_pos(world, map, GoldItem, pos->x, pos->y);
         if (gold) ecs_set(world, e, PickupAction, { gold });
     }
 }
