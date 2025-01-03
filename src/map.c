@@ -38,6 +38,7 @@ Map *new_arena(Map *map, int rows, int cols)
         .dm = { 0 },
         .type = DM_TYPE_Item,
         .subtype = GoldItem,
+        .dirty = false,
     };
 
     // TODO: Make a heuristic for arena size
@@ -134,6 +135,39 @@ bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off)
     return 1;
 }
 
+// Assumes in-bounds
+void map_place_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
+{
+    GArray *items = map->items[y][x];
+    if (!items)
+        items = map->items[y][x] = g_array_sized_new(FALSE, TRUE, sizeof(ecs_entity_t), 8);
+    g_array_append_val(items, e);
+    mark_item_dms_dirty(world, map, e);
+}
+
+ecs_entity_t map_pickup_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
+{
+    GArray *items = map->items[y][x];
+    if (!map->items[y][x] || items->len == 0) return 0;
+
+    guint i = 0;
+    ecs_entity_t item;
+    if (e == 0) {
+        item = g_array_index(items, ecs_entity_t, 0);
+    } else {
+        for (; i < items->len; i++) {
+            item = g_array_index(items, ecs_entity_t, i);
+            if (item == e) break;
+        }
+        if (i == items->len) return 0;
+    }
+
+    e = item;
+    g_array_remove_index_fast(items, i);
+    mark_item_dms_dirty(world, map, e);
+    return e;
+}
+
 void dijkstra_init(ecs_world_t *world)
 {
     // clang-format off
@@ -168,6 +202,8 @@ void update_dijkstra_maps(ecs_world_t *world, Map *map)
 
 static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap)
 {
+    if (!dm_wrap->dirty) return;
+
     uint32_t n_sources = 0;
     ecs_iter_t it = ecs_query_iter(world, item_q);
     while (ecs_query_next(&it)) {
@@ -179,6 +215,7 @@ static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm
     }
 
     build_dijkstra_map((DijkstraMap *) dm_wrap, map->dijkstra_sources, n_sources, &map->dm_arena);
+    dm_wrap->dirty = false;
 }
 
 static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits)
@@ -200,4 +237,12 @@ static void successors8(size_t idx, const void *state, successor_t **exits, uint
     }
 
     *exits = all;
+}
+
+void mark_item_dms_dirty(ecs_world_t *world, Map *map, ecs_entity_t e)
+{
+    for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++) {
+        if (ecs_has_pair(world, e, EcsIsA, map->dijkstra_maps[i].subtype))
+            map->dijkstra_maps[i].dirty = true;
+    }
 }
