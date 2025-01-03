@@ -21,8 +21,9 @@
 #include <uncursed/uncursed.h>
 #include <glib.h>
 
-CommandType get_command(KeyInfo *key);
+CommandType get_command(KeyInfo *key, int msec_timeout);
 void temp_arena_init(ecs_world_t *world, Map *map);
+void render_and_sock_menus(WindowHolder *wh);
 
 static ecs_world_t *world;
 ecs_entity_t g_player_id;
@@ -33,7 +34,7 @@ int Y_DIRS[] = { 0, 1, 0, -1, 1, 1, -1, -1 };
 // TODO: Refactor this while damn file
 int main(int argc, char **argv)
 {
-    // for (volatile int i = 0; i == 0;);
+    /*for (volatile int i = 0; i == 0;);*/
     initialize_uncursed(&argc, argv);
     initscr();
 
@@ -81,19 +82,17 @@ int main(int argc, char **argv)
     KeyInfo key = { 0 };
     bool is_player_turn = false;
     while (true) {
-        ecs_run(world, render, 0.0, &game_windows);
-        handle_socket_menus();
-
         switch (state) {
         case PreTurn:
-            ecs_run(world, ecs_id(Initiative), 0.0, NULL);
+            ecs_run(world, initiative, 0.0, NULL);
             is_player_turn = ecs_has(world, g_player_id, MyTurn);
             state = is_player_turn ? PlayerTurn : RunSystems;
             break;
         case PlayerTurn:
+            render_and_sock_menus(&game_windows);
             // TODO: Find a better way to handle the player's turn elegantly
             do {
-                CommandType cmd = get_command(&key);
+                CommandType cmd = get_command(&key, 7);
                 if (cmd == GUICommand || (cmd == PlayerGUICommand && is_player_turn)) {
                     state = NewGUIFrame;
                     break;
@@ -107,6 +106,7 @@ int main(int argc, char **argv)
 
             break;
         case RunSystems:
+            render_and_sock_menus(&game_windows);
             update_dijkstra_maps(world, map);
             ecs_run(world, ecs_id(AI), 0.0, NULL);
             ecs_run(world, ecs_id(Move), 0.0, NULL);
@@ -128,12 +128,15 @@ int main(int argc, char **argv)
                 continue;
             }
             rlsmenu_gui_push(gui, gui_state[idx].frame);
+            render_and_sock_menus(&game_windows);
 
             state = GUI;
             // FALLTHROUGH
         case GUI:
-            get_command(&key);
+            get_command(&key, -1);
             enum rlsmenu_result res = rlsmenu_update(gui, translate_key(&key));
+            render_and_sock_menus(&game_windows);
+
             switch (res) {
             case RLSMENU_DONE:
                 FrameData *fd = rlsmenu_pop_return(gui);
@@ -163,10 +166,10 @@ uncursed_done:
 }
 
 // TODO: Enumerating menus like this is SHIT
-CommandType get_command(KeyInfo *key)
+CommandType get_command(KeyInfo *key, int msec_timeout)
 {
     wint_t c = 0;
-    int ret = timeout_get_wch(7, &c);
+    int ret = timeout_get_wch(msec_timeout, &c);
 
     key->status = ret;
     key->key = c;
@@ -257,4 +260,10 @@ void temp_arena_init(ecs_world_t *world, Map *map)
             ecs_value(Name, { L"Kiwi" })
     );
     place_item(world, item4, 18, 21);
+}
+
+void render_and_sock_menus(WindowHolder *wh)
+{
+    ecs_run(world, render, 0.0, wh);
+    handle_socket_menus();
 }

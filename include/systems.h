@@ -11,8 +11,8 @@ void Drop(ecs_iter_t *it);
 void Prayer(ecs_iter_t *it);
 
 extern ecs_entity_t render;
+extern ecs_entity_t initiative;;
 
-extern ECS_SYSTEM_DECLARE(Initiative);
 extern ECS_SYSTEM_DECLARE(Move);
 extern ECS_SYSTEM_DECLARE(Pickup);
 extern ECS_SYSTEM_DECLARE(Drop);

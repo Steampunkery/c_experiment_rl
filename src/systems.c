@@ -9,8 +9,9 @@
 #include "flecs.h"
 
 ecs_entity_t render;
+ecs_entity_t initiative;
+ecs_query_t *initiative_q;
 
-ECS_SYSTEM_DECLARE(Initiative);
 ECS_SYSTEM_DECLARE(Move);
 ECS_SYSTEM_DECLARE(Pickup);
 ECS_SYSTEM_DECLARE(Drop);
@@ -19,7 +20,6 @@ ECS_SYSTEM_DECLARE(Prayer);
 
 void register_systems(ecs_world_t *world)
 {
-    ECS_SYSTEM_DEFINE(world, Initiative, EcsOnUpdate, InitiativeData);
     ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, MovementAction, InitiativeData);
     ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, PickupAction, Position, InitiativeData);
     ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, DropAction, Position, InitiativeData);
@@ -34,18 +34,45 @@ void register_systems(ecs_world_t *world)
         },
         .run = Render
     });
+
+    initiative_q = ecs_query(world, {
+        .terms = { { .id = ecs_id(InitiativeData) } },
+        .cache_kind = EcsQueryCacheAuto,
+    });
+
+    initiative = ecs_system(world, {
+        .run = Initiative
+    });
 }
 
-void Initiative(ecs_iter_t *it)
+void Initiative(ecs_iter_t *it_)
 {
-    InitiativeData *init = ecs_field(it, InitiativeData, 0);
+    ecs_iter_t it = ecs_query_iter(it_->world, initiative_q);
+    bool would_grant_turn = false;
 
-    for (int i = 0; i < it->count; i++) {
-        init[i].points += init[i].increment;
-        if (init[i].points >= 0)
-            ecs_add(it->world, it->entities[i], MyTurn);
-        else
-            ecs_remove(it->world, it->entities[i], MyTurn);
+    // Give initiatiive points until someone has a turn
+    do {
+        while (ecs_query_next(&it)) {
+            InitiativeData *init = ecs_field(&it, InitiativeData, 0);
+
+            for (int i = 0; i < it.count; i++) {
+                init[i].points += init[i].increment;
+                if (init[i].points >= 0) would_grant_turn = true;
+            }
+        }
+
+        it = ecs_query_iter(it_->world, initiative_q);
+    } while (!would_grant_turn);
+
+    // Grant turns to all eligible entities
+    while(ecs_query_next(&it)) {
+        InitiativeData *init = ecs_field(&it, InitiativeData, 0);
+
+        for (int i = 0; i < it.count; i++)
+            if (init[i].points >= 0)
+                ecs_add(it.world, it.entities[i], MyTurn);
+            else
+                ecs_remove(it.world, it.entities[i], MyTurn);
     }
 }
 
