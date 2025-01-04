@@ -3,18 +3,22 @@
 #include "monster.h"
 #include "religion.h"
 #include "component.h"
+#include "prefab.h"
 
 #include "flecs.h"
 #include <uncursed/uncursed.h>
 
 ecs_entity_t init_player(ecs_world_t *world)
 {
-    ecs_entity_t player = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "player" });
+    ecs_entity_t player = ecs_entity_init(world, &(ecs_entity_desc_t) {
+            .name = "player",
+            .set = ecs_values({ ecs_isa(Monster), NULL })
+    });
+
     ecs_set(world, player, Position, { 10, 10 });
     ecs_set(world, player, Glyph, { '@' });
-    ecs_set(world, player, Renderable, { true });
     ecs_set(world, player, Inventory, INV_NEW(10));
-    ecs_set(world, player, InitiativeData, { 0, 10 });
+    ecs_remove(world, player, AIController);
 
     add_follower(world, &pastafarianism, player);
 

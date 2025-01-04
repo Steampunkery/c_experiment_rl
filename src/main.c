@@ -208,18 +208,13 @@ void temp_arena_init(ecs_world_t *world, Map *map)
 {
     g_player_id = init_player(world);
 
-    ecs_entity_t goblin1 = init_goblin(world, 40, 20);
-    (void) goblin1;
-
-    ecs_entity_t goblin2 = init_goblin(world, 40, 21);
-    ecs_set(world, goblin2, AIController, { left_walker, NULL });
-
-    ecs_entity_t goblin4 = init_goblin(world, 40, 23);
-    ecs_set(world, goblin4, AIController, { left_walker, NULL });
-
-    ecs_entity_t goblin3 = init_goblin(world, 40, 22);
-    ecs_set(world, goblin3, AIController, { greedy_ai, map });
-    make_invisible(world, goblin3);
+    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 20 }));
+    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 21 }),
+            ecs_value(AIController, { left_walker, NULL }));
+    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 23 }),
+            ecs_value(AIController, { left_walker, NULL }));
+    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 22 }),
+            ecs_value(AIController, { greedy_ai, map }), { Invisible, NULL });
 
     ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold1, 1, 1);

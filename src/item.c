@@ -34,6 +34,7 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
     if (!map_contains(map, x, y)) return 0;
 
     e = map_pickup_item(world, map, e, x, y);
+    if (!e) return 0;
     ecs_remove(world, e, Position);
 
     return e;
