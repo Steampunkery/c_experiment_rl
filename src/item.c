@@ -17,7 +17,7 @@ void item_init(ecs_world_t *world)
 
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
-    Map *map = ecs_singleton_ensure(world, Map);
+    Map *map = ecs_singleton_get_mut(world, Map);
     if (!map_contains(map, x, y)) return 0;
 
     map_place_item(world, map, e, x, y);
@@ -30,7 +30,7 @@ ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 // Note: Condider removing aforementioned feature
 ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
-    Map *map = ecs_singleton_ensure(world, Map);
+    Map *map = ecs_singleton_get_mut(world, Map);
     if (!map_contains(map, x, y)) return 0;
 
     e = map_pickup_item(world, map, e, x, y);

@@ -1,5 +1,6 @@
 #include "socket_menu.h"
 
+#include "arena.h"
 #include "component.h"
 #include "gui.h"
 #include "log.h"
@@ -51,6 +52,8 @@ MenuNetWrapper *mnw_new(FrameData *frame_data)
 {
     MenuNetWrapper *mnw = malloc(sizeof(*mnw));
     if (!mnw) goto mem_err;
+    mnw->a = new_arena(1 << 12);
+    if (!mnw->a.beg) goto mnw_err;
 
     mnw->sui.port = 0;
     mnw->frame_data = frame_data;
@@ -92,6 +95,7 @@ void mnw_free(MenuNetWrapper *mnw)
 {
     sockui_close(&mnw->sui);
     rlsmenu_gui_deinit(&mnw->gui);
+    free(mnw->a.beg);
     free(mnw);
 }
 
@@ -111,7 +115,7 @@ static bool mnw_update(MenuNetWrapper *mnw)
         rlsmenu_gui_deinit(&mnw->gui);
         rlsmenu_gui_init(&mnw->gui);
 
-        if (!data->prep_frame(data, data->world))
+        if (!data->prep_frame(data, data->world, mnw->a))
             return false;
         rlsmenu_gui_push(&mnw->gui, data->frame);
     }

@@ -1,4 +1,6 @@
 #pragma once
+#include "arena.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -15,7 +17,8 @@ struct FrameData {
     ecs_world_t *world;
 
     bool consumes_turn;
-    bool (*prep_frame)(FrameData *, ecs_world_t *);
+    bool (*prep_frame)(FrameData *, ecs_world_t *, arena);
+    void *ctx;
     uint32_t (*get_data_id)(FrameData *);
     // Must be the same size as DATA_ID_ARG_SIZE
     uint64_t data_id_arg;
@@ -23,3 +26,5 @@ struct FrameData {
 };
 
 extern FrameData gui_state[52];
+
+void gui_init();

@@ -12,6 +12,7 @@
 #include "log.h"
 #include "prefab.h"
 #include "item.h"
+#include "arena.h"
 
 #include "rlsmenu.h"
 #include "flecs.h"
@@ -22,7 +23,7 @@
 #include <glib.h>
 
 CommandType get_command(KeyInfo *key, int msec_timeout);
-void temp_arena_init(ecs_world_t *world, Map *map);
+void temp_map_init(ecs_world_t *world, Map *map);
 void render_and_sock_menus(WindowHolder *wh);
 
 static ecs_world_t *world;
@@ -67,14 +68,18 @@ int main(int argc, char **argv)
 
     dijkstra_init(world);
     Map *map = ecs_singleton_ensure(world, Map);
-    new_arena(map, LINES - 2, COLS);
+    new_map(map, LINES - 2, COLS);
 
     item_init(world);
+    gui_init();
 
     rlsmenu_gui *gui = ecs_singleton_ensure(world, rlsmenu_gui);
     rlsmenu_gui_init(gui);
+    arena frame_arena = new_arena(1 << 12);
+    if (!frame_arena.beg)
+        goto done;
 
-    temp_arena_init(world, map);
+    temp_map_init(world, map);
 
     // Put state variables here.
     // TODO!: Make these into a struct
@@ -123,7 +128,7 @@ int main(int argc, char **argv)
             if (gui_state[idx].data_id_type == DATA_ID_ENTITY_TARGET)
                 memcpy(&gui_state[idx].data_id_arg, (void *) &g_player_id, DATA_ID_ARG_SIZE);
 
-            if (!gui_state[idx].prep_frame(&gui_state[idx], world)) {
+            if (!gui_state[idx].prep_frame(&gui_state[idx], world, frame_arena)) {
                 state = PlayerTurn;
                 continue;
             }
@@ -204,7 +209,7 @@ CommandType get_command(KeyInfo *key, int msec_timeout)
     return InvalidCommand;
 }
 
-void temp_arena_init(ecs_world_t *world, Map *map)
+void temp_map_init(ecs_world_t *world, Map *map)
 {
     g_player_id = init_player(world);
 

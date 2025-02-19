@@ -33,13 +33,13 @@ typedef struct Map {
     // sources array?)
     size_t *dijkstra_sources;
     DMWrapper dijkstra_maps[NUM_DIJKSTRA_MAPS];
-    arena dm_arena;
+    DMArena dm_arena;
 
     char *str;
     bool should_rebuild_str;
 } Map;
 
-Map *new_arena(Map *map, int rows, int cols);
+Map *new_map(Map *map, int rows, int cols);
 void destroy_map(Map *map);
 char *get_map_str(Map *map);
 

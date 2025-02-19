@@ -27,6 +27,7 @@ ECS_COMPONENT_DECLARE(MenuNetWrapper);
 
 ECS_TAG_DECLARE(Invisible);
 ECS_TAG_DECLARE(MyTurn);
+ECS_TAG_DECLARE(InInventory);
 
 void register_components(ecs_world_t *world)
 {
@@ -51,6 +52,9 @@ void register_components(ecs_world_t *world)
 
     ECS_TAG_DEFINE(world, Invisible);
     ECS_TAG_DEFINE(world, MyTurn);
+    ECS_TAG_DEFINE(world, InInventory);
+    // NOTE: Union relationships cannot have data
+    ecs_add_id(world, InInventory, EcsUnion);
 
     ECS_COMPONENT_DEFINE(world, Map);
     ECS_COMPONENT_DEFINE(world, rlsmenu_gui);

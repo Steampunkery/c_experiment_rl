@@ -109,7 +109,11 @@ void Pickup(ecs_iter_t *it)
     for (int i = 0; i < it->count; i++) {
         if (!inv_full(&inv[i])) {
             ecs_entity_t e = pickup_item(it->world, pa[i].entity, pos[i].x, pos[i].y);
-            inv_insert(&inv[i], e); // error handling here
+
+            // Consider rolling the below two into one function because they
+            // should nearly always happen together
+            if (inv_insert(&inv[i], e)) // error handling here
+                ecs_add_pair(it->world, e, InInventory, it->entities[i]);
         }
         init[i].points -= 50;
         ecs_remove(it->world, it->entities[i], PickupAction);
@@ -126,7 +130,11 @@ void Drop(ecs_iter_t *it)
     for (int i = 0; i < it->count; i++) {
         assert(da[i].entity != 0);
         place_item(it->world, da[i].entity, pos[i].x, pos[i].y); // error handling here
+
+        // Consider rolling the below two into one function because they
+        // should nearly always happen together
         assert(inv_delete(&inv[i], da[i].entity));
+        ecs_remove_pair(it->world, da[i].entity, InInventory, it->entities[i]);
 
         init[i].points -= 50;
         ecs_remove(it->world, it->entities[i], DropAction);
@@ -144,7 +152,7 @@ void Prayer(ecs_iter_t *it)
                 log_msg(&g_game_log, L"Your supplication falls upon deaf ears");
             }
         } else {
-            rel = ecs_ensure(it->world, it->entities[i], Religious);
+            rel = ecs_get_mut(it->world, it->entities[i], Religious);
             Religion *r = rel->religion;
             if (rel->favors_left > 0 && r->boons[r->boon_idx]) {
                 bestow_boon(it->world, rel, it->entities[i]);

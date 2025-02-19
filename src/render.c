@@ -10,8 +10,8 @@
 
 void Render(ecs_iter_t *it)
 {
-    Map *map = ecs_singleton_ensure(it->world, Map);
-    rlsmenu_gui *gui = ecs_singleton_ensure(it->world, rlsmenu_gui);
+    Map *map = ecs_singleton_get_mut(it->world, Map);
+    rlsmenu_gui *gui = ecs_singleton_get_mut(it->world, rlsmenu_gui);
 
     WINDOW *basewin = ((WindowHolder *) it->param)->base;
     WINDOW *logwin = ((WindowHolder *) it->param)->log;

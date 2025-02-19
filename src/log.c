@@ -55,22 +55,3 @@ bool log_has_pending(const Logger *l)
 {
     return l->pending_msgs;
 }
-
-// TODO: Make this less cancerous.
-/// Caller owns allocated memory
-int log_to_strs(Logger *l, wchar_t ***dest)
-{
-    int n_msgs = l->data_id > MAX_LOG_MSGS ? MAX_LOG_MSGS : l->data_id;
-    if (n_msgs == 0) return 0;
-
-    *dest = malloc(n_msgs * sizeof(**dest));
-    if (!*dest) {
-        perror("malloc");
-        exit(1);
-    }
-
-    for (int i = 1; i <= n_msgs; i++)
-        (*dest)[n_msgs - i] =  l->msgs[(l->head - i) & (MAX_LOG_MSGS - 1)];
-
-    return n_msgs;
-}

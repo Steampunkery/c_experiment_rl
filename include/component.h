@@ -1,6 +1,7 @@
 #pragma once
 #include "flecs.h"
 #include "rogue.h"
+#include "arena.h"
 
 #include "rlsmenu.h"
 #include "sockui.h"
@@ -34,6 +35,7 @@ extern ECS_COMPONENT_DECLARE(MenuNetWrapper);
 
 extern ECS_TAG_DECLARE(Invisible);
 extern ECS_TAG_DECLARE(MyTurn);
+extern ECS_TAG_DECLARE(InInventory);
 
 typedef struct Name {
     wchar_t *s;
@@ -57,17 +59,15 @@ typedef struct MovementAction {
 } MovementAction;
 
 // TODO: Don't allow entity == 0
-typedef struct PickupAction {
+typedef struct InvItemAction {
     // Entity to pick up or 0 for first item in the stack
     ecs_entity_t entity;
-} PickupAction, DropAction;
+} InvItemAction, PickupAction, DropAction;
 
 typedef struct PrayerAction {
     char dummy;
 } PrayerAction;
 
-// TODO: Create relationship (InInventory, entityID) so that we can use queries
-// to get items in inventories (it's more generic)
 typedef struct Inventory {
     MenuChangeCounter data_id;
     int capacity;
@@ -113,6 +113,7 @@ typedef struct MenuNetWrapper {
     sockui_t sui;
     rlsmenu_gui gui;
     FrameData *frame_data;
+    arena a;
 } MenuNetWrapper;
 
 void register_components(ecs_world_t *world);

@@ -17,7 +17,7 @@ char tiletype_to_wchar[] = {
     [Wall] = '#',
 };
 
-Map *new_arena(Map *map, int rows, int cols)
+Map *new_map(Map *map, int rows, int cols)
 {
     map->rows = rows;
     map->cols = cols;
