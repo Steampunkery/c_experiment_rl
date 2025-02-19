@@ -3,6 +3,8 @@
 
 #define FLECS_CUSTOM_BUILD
 #define FLECS_SYSTEM
+#define FLECS_SCRIPT
+#define FLECS_LOG
 
 /**
  * @file flecs.h
@@ -9928,6 +9930,9 @@ int ecs_value_move_ctor(
 
 #define ecs_singleton_get(world, comp)\
     ecs_get(world, ecs_id(comp), comp)
+
+#define ecs_singleton_get_mut(world, comp)\
+    ecs_get_mut(world, ecs_id(comp), comp)
 
 #define ecs_singleton_set_ptr(world, comp, ptr)\
     ecs_set_ptr(world, ecs_id(comp), comp, ptr)
