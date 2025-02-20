@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include "map.h"
 #include "monster.h"
 #include "religion.h"
 #include "component.h"
@@ -12,7 +13,7 @@ ecs_entity_t init_player(ecs_world_t *world)
 {
     ecs_entity_t player = ecs_entity_init(world, &(ecs_entity_desc_t) {
             .name = "player",
-            .set = ecs_values({ ecs_isa(Monster), NULL })
+            .set = ecs_values({ ecs_isa(Player), NULL })
     });
 
     ecs_set(world, player, Position, { 10, 10 });
@@ -40,6 +41,12 @@ bool process_player_input(ecs_world_t *world, KeyInfo key)
             int cost = get_cost_for_movement(pos->x, pos->y);
             MovementAction mov = { pos->x, pos->y, cost };
             ret = try_move_entity(world, g_player_id, &mov);
+
+            if (ret) {
+                Map *map = ecs_singleton_get_mut(world, Map);
+                map->dijkstra_maps[DM_ORDER_PLAYER].dirty = true;
+            }
+
             break;
         case WaitInput:
             ecs_set(world, g_player_id, MovementAction, { 0, 0, 10 });

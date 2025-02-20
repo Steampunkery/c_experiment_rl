@@ -2,7 +2,7 @@
 #include "dijkstra.h"
 #include <stdbool.h>
 
-#define NUM_DIJKSTRA_MAPS 1
+#define NUM_DIJKSTRA_MAPS 2
 
 typedef struct _GArray GArray;
 typedef enum { Floor = 0, Wall } TileType;
@@ -12,8 +12,8 @@ typedef long unsigned int ecs_entity_t;
 
 extern char tiletype_to_wchar[];
 
-enum dm_type { DM_TYPE_Item };
-enum dm_order { DM_ORDER_GOLD };
+enum dm_type { DM_TYPE_PREFAB };
+enum dm_order { DM_ORDER_GOLD, DM_ORDER_PLAYER };
 
 typedef struct DMWrapper {
     DijkstraMap dm;
@@ -55,4 +55,4 @@ ecs_entity_t map_pickup_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x
 
 void dijkstra_init(ecs_world_t *world);
 void update_dijkstra_maps(ecs_world_t *world, Map *map);
-void mark_item_dms_dirty(ecs_world_t *world, Map *map, ecs_entity_t e);
+void mark_prefab_dms_dirty(ecs_world_t *world, Map *map, ecs_entity_t e);

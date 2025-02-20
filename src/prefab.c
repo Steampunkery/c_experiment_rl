@@ -13,6 +13,8 @@ ECS_PREFAB_DECLARE(QuaffableItem);
 
 ECS_PREFAB_DECLARE(Monster);
 ECS_PREFAB_DECLARE(Goblin);
+ECS_PREFAB_DECLARE(Player);
+ECS_PREFAB_DECLARE(Dog);
 
 void register_prefabs(ecs_world_t *world)
 {
@@ -52,6 +54,14 @@ void register_prefabs(ecs_world_t *world)
 
     ECS_PREFAB_DEFINE(world, Goblin, (IsA, Monster));
     ecs_set(world, Goblin, Name, { L"Goblin" });
-    ecs_set(world, Monster, Inventory, INV_NEW(10));
+    ecs_set(world, Goblin, Inventory, INV_NEW(10));
     ecs_set(world, Goblin, Glyph, { L'g' });
+
+    ECS_PREFAB_DEFINE(world, Player, (IsA, Monster));
+    ecs_set(world, Player, Name, { L"Player" });
+
+    ECS_PREFAB_DEFINE(world, Dog, (IsA, Monster));
+    ecs_set(world, Dog, Name, { L"Dog" });
+    ecs_set(world, Dog, Health, { 20 });
+    ecs_set(world, Dog, Glyph, { L'd' });
 }

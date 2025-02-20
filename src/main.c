@@ -227,6 +227,9 @@ void temp_map_init(ecs_world_t *world, Map *map)
     ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 22 }),
             ecs_value(AIController, { greedy_ai, map }), { Invisible, NULL });
 
+    ecs_insert(world, { ecs_isa(Dog), NULL }, ecs_value(Position, { 10, 20 }),
+            ecs_value(AIController, { pet_ai, map }));
+
     ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold1, 1, 1);
 

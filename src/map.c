@@ -9,7 +9,7 @@
 
 static ecs_query_t *item_q;
 
-static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap);
+static void update_dijkstra_prefab_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap);
 static void successors8(size_t idx, const void *state, successor_t **exits, uint8_t *n_exits);
 
 char tiletype_to_wchar[] = {
@@ -34,10 +34,17 @@ Map *new_map(Map *map, int rows, int cols)
     map->items = (GArray ***) new_grid(rows, cols, sizeof(**map->items), &init);
 
     map->dijkstra_sources = malloc(sizeof(*map->dijkstra_sources) * rows * cols);
-    map->dijkstra_maps[0] = (DMWrapper){
+    map->dijkstra_maps[DM_ORDER_GOLD] = (DMWrapper) {
         .dm = { 0 },
-        .type = DM_TYPE_Item,
+        .type = DM_TYPE_PREFAB,
         .subtype = GoldItem,
+        .dirty = false,
+    };
+
+    map->dijkstra_maps[DM_ORDER_PLAYER] = (DMWrapper) {
+        .dm = { 0 },
+        .type = DM_TYPE_PREFAB,
+        .subtype = Player,
         .dirty = false,
     };
 
@@ -142,7 +149,7 @@ void map_place_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
     if (!items)
         items = map->items[y][x] = g_array_sized_new(FALSE, TRUE, sizeof(ecs_entity_t), 8);
     g_array_append_val(items, e);
-    mark_item_dms_dirty(world, map, e);
+    mark_prefab_dms_dirty(world, map, e);
 }
 
 ecs_entity_t map_pickup_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
@@ -164,7 +171,7 @@ ecs_entity_t map_pickup_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x
 
     e = item;
     g_array_remove_index_fast(items, i);
-    mark_item_dms_dirty(world, map, e);
+    mark_prefab_dms_dirty(world, map, e);
     return e;
 }
 
@@ -173,7 +180,7 @@ void dijkstra_init(ecs_world_t *world)
     // clang-format off
     item_q = ecs_query(world, {
         .terms = {
-            { .id = ecs_pair(EcsIsA, Item) },
+            { .id = ecs_pair(EcsIsA, EcsWildcard) },
             { .id = ecs_id(Position) },
         },
         .cache_kind = EcsQueryCacheAuto
@@ -191,8 +198,8 @@ void update_dijkstra_maps(ecs_world_t *world, Map *map)
 {
     for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++) {
         switch (map->dijkstra_maps[i].type) {
-        case DM_TYPE_Item:
-            update_dijkstra_item_map(world, map, map->dijkstra_maps + i);
+        case DM_TYPE_PREFAB:
+            update_dijkstra_prefab_map(world, map, map->dijkstra_maps + i);
             break;
         default:
             __builtin_unreachable();
@@ -200,7 +207,7 @@ void update_dijkstra_maps(ecs_world_t *world, Map *map)
     }
 }
 
-static void update_dijkstra_item_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap)
+static void update_dijkstra_prefab_map(ecs_world_t *world, Map *map, DMWrapper *dm_wrap)
 {
     if (!dm_wrap->dirty) return;
 
@@ -239,7 +246,7 @@ static void successors8(size_t idx, const void *state, successor_t **exits, uint
     *exits = all;
 }
 
-void mark_item_dms_dirty(ecs_world_t *world, Map *map, ecs_entity_t e)
+void mark_prefab_dms_dirty(ecs_world_t *world, Map *map, ecs_entity_t e)
 {
     for (int i = 0; i < NUM_DIJKSTRA_MAPS; i++) {
         if (ecs_has_pair(world, e, EcsIsA, map->dijkstra_maps[i].subtype))
