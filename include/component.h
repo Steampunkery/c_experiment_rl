@@ -18,10 +18,12 @@ extern ECS_COMPONENT_DECLARE(Weight);
 extern ECS_COMPONENT_DECLARE(Value);
 extern ECS_COMPONENT_DECLARE(Satiation);
 extern ECS_COMPONENT_DECLARE(Stack);
+extern ECS_COMPONENT_DECLARE(Health);
 extern ECS_COMPONENT_DECLARE(Inventory);
 extern ECS_COMPONENT_DECLARE(MovementAction);
 extern ECS_COMPONENT_DECLARE(PickupAction);
 extern ECS_COMPONENT_DECLARE(DropAction);
+extern ECS_COMPONENT_DECLARE(QuaffAction);
 extern ECS_COMPONENT_DECLARE(AIController);
 extern ECS_COMPONENT_DECLARE(Glyph);
 extern ECS_COMPONENT_DECLARE(Religious);
@@ -32,10 +34,14 @@ extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
 extern ECS_COMPONENT_DECLARE(Map);
 extern ECS_COMPONENT_DECLARE(InitiativeData);
 extern ECS_COMPONENT_DECLARE(MenuNetWrapper);
+extern ECS_COMPONENT_DECLARE(TimedStatusEffect);
 
 extern ECS_TAG_DECLARE(Invisible);
 extern ECS_TAG_DECLARE(MyTurn);
+extern ECS_TAG_DECLARE(Targets);
+extern ECS_TAG_DECLARE(HasQuaffEffect);
 extern ECS_TAG_DECLARE(InInventory);
+extern ECS_TAG_DECLARE(Poison);
 
 typedef struct Name {
     wchar_t *s;
@@ -51,7 +57,7 @@ typedef struct Weight {
 
 typedef struct Stack {
     int val;
-} Stack;
+} Stack, Health;
 
 typedef struct MovementAction {
     int x, y;
@@ -62,7 +68,7 @@ typedef struct MovementAction {
 typedef struct InvItemAction {
     // Entity to pick up or 0 for first item in the stack
     ecs_entity_t entity;
-} InvItemAction, PickupAction, DropAction;
+} InvItemAction, PickupAction, DropAction, QuaffAction;
 
 typedef struct PrayerAction {
     char dummy;
@@ -115,6 +121,15 @@ typedef struct MenuNetWrapper {
     FrameData *frame_data;
     arena a;
 } MenuNetWrapper;
+
+typedef struct TimedStatusEffect {
+    // How many turns the effect is active for
+    int turns;
+    // The status effect component to add (must have a default constructor)
+    ecs_id_t effect_comp;
+    // The target of the effect. Set when timer entity is created
+    ecs_entity_t target;
+} TimedStatusEffect;
 
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);

@@ -15,16 +15,22 @@ ecs_query_t *initiative_q;
 ECS_SYSTEM_DECLARE(Move);
 ECS_SYSTEM_DECLARE(Pickup);
 ECS_SYSTEM_DECLARE(Drop);
+ECS_SYSTEM_DECLARE(Quaff);
 ECS_SYSTEM_DECLARE(AI);
 ECS_SYSTEM_DECLARE(Prayer);
+ECS_SYSTEM_DECLARE(ApplyPoison);
+ECS_SYSTEM_DECLARE(StatusEffectTimer);
 
 void register_systems(ecs_world_t *world)
 {
     ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, MovementAction, InitiativeData);
     ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, PickupAction, Position, InitiativeData);
     ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, DropAction, Position, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, Quaff, EcsOnUpdate, Inventory, QuaffAction, InitiativeData);
     ECS_SYSTEM_DEFINE(world, AI, EcsOnUpdate, AIController, MyTurn);
     ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, PrayerAction, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, ApplyPoison, EcsOnUpdate, (Targets, $t), Health($t), Poison, MyTurn);
+    ECS_SYSTEM_DEFINE(world, StatusEffectTimer, EcsOnUpdate, TimedStatusEffect, InitiativeData, MyTurn);
 
     render = ecs_system(world, {
         .query.terms = {
@@ -141,6 +147,46 @@ void Drop(ecs_iter_t *it)
     }
 }
 
+void Quaff(ecs_iter_t *it)
+{
+    Inventory *inv = ecs_field(it, Inventory, 0);
+    QuaffAction *qa = ecs_field(it, QuaffAction, 1);
+    InitiativeData *init = ecs_field(it, InitiativeData, 2);
+
+    ecs_entity_t e;
+    for (int i = 0; i < it->count; i++) {
+        e = qa[i].entity;
+        assert(e != 0);
+
+        // Remove quaffable from inventory
+        assert(inv_delete(&inv[i], e)); // Note, this implies that potions _must_ be present in inventory when quaffed
+        ecs_remove_pair(it->world, e, InInventory, it->entities[i]);
+
+        void *effect_type;
+        if ((effect_type = ecs_get_mut_pair_second(it->world, e, HasQuaffEffect, TimedStatusEffect))) {
+            TimedStatusEffect *tse = effect_type;
+            tse->target= it->entities[i];
+
+            ecs_entity(it->world, {
+                    .set = ecs_values(
+                            ecs_value_ptr(TimedStatusEffect, effect_type),
+                            ecs_value(InitiativeData, { 0, 10 }),
+                            { ecs_pair(Targets, tse->target), NULL }),
+                    .add = ecs_ids(tse->effect_comp) // Use add to invoke constructor
+            });
+        } else if (ecs_has_pair(it->world, e, HasQuaffEffect, EcsWildcard)) {
+            assert(!"Unsupported quaff effect");
+        }
+
+        // After quaffing, the potion no longer exists
+        ecs_delete(it->world, e);
+
+        init[i].points -= 50;
+        ecs_remove(it->world, it->entities[i], QuaffAction);
+    }
+
+}
+
 void Prayer(ecs_iter_t *it)
 {
     InitiativeData *init = ecs_field(it, InitiativeData, 1);
@@ -165,5 +211,29 @@ void Prayer(ecs_iter_t *it)
 
         init[i].points -= 200;
         ecs_remove(it->world, it->entities[i], PrayerAction);
+    }
+}
+
+void ApplyPoison(ecs_iter_t *it)
+{
+    Health *health = ecs_field(it, Health, 1);
+
+    for (int i = 0; i < it->count; i++) {
+        health[i].val -= 1;
+        log_msg(&g_debug_log, L"Poisoned: %d", health[i].val);
+    }
+}
+
+void StatusEffectTimer(ecs_iter_t *it)
+{
+    TimedStatusEffect *tse = ecs_field(it, TimedStatusEffect, 0);
+    InitiativeData *init = ecs_field(it, InitiativeData, 1);
+
+    for (int i = 0; i < it->count; i++) {
+        init[i].points -= 100;
+        if (--tse[i].turns > 0)
+            continue;
+
+        ecs_delete(it->world, it->entities[i]);
     }
 }

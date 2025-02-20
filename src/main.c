@@ -118,6 +118,10 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(Pickup), 0.0, NULL);
             ecs_run(world, ecs_id(Drop), 0.0, NULL);
             ecs_run(world, ecs_id(Prayer), 0.0, NULL);
+            ecs_run(world, ecs_id(Quaff), 0.0, NULL);
+
+            ecs_run(world, ecs_id(ApplyPoison), 0.0, NULL);
+            ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
 
             state = PreTurn;
             break;
@@ -193,6 +197,8 @@ CommandType get_command(KeyInfo *key, int msec_timeout)
             switch (c) {
                 case 'd':
                     return PlayerGUICommand;
+                case 'q':
+                    return PlayerGUICommand;
                 case 'i':
                     return GUICommand;
                 case 'm':
@@ -260,6 +266,26 @@ void temp_map_init(ecs_world_t *world, Map *map)
             ecs_value(Name, { L"Kiwi" })
     );
     place_item(world, item4, 18, 21);
+
+    ecs_entity_t poison_potion1 = ecs_insert(world,
+            { ecs_isa(QuaffableItem), NULL },
+            ecs_value_pair_2nd(HasQuaffEffect, TimedStatusEffect, {
+                .turns = 10,
+                .effect_comp = ecs_id(Poison)
+            }),
+            ecs_value(Name, { L"Potion of Poison" })
+    );
+    place_item(world, poison_potion1, 18, 23);
+
+    ecs_entity_t poison_potion2 = ecs_insert(world,
+            { ecs_isa(QuaffableItem), NULL },
+            ecs_value_pair_2nd(HasQuaffEffect, TimedStatusEffect, {
+                .turns = 10,
+                .effect_comp = ecs_id(Poison)
+            }),
+            ecs_value(Name, { L"Potion of Poison" })
+    );
+    place_item(world, poison_potion2, 18, 24);
 }
 
 void render_and_sock_menus(WindowHolder *wh)

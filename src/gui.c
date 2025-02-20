@@ -79,6 +79,7 @@ rlsmenu_list inv_frame = {
     }
 
 DEFINE_INV_SLIST_FRAME(Drop, 'd');
+DEFINE_INV_SLIST_FRAME(Quaff, 'q');
 #undef DEFINE_INV_SLIST_FRAME
 
 rlsmenu_slist sock_frame = {
@@ -140,6 +141,17 @@ void gui_init()
     };
     FILL_INV_SLIST_FRAME_CTX('d', DropAction);
 
+    gui_state[alpha_to_idx('q')] = (FrameData) {
+        .frame = (rlsmenu_frame *) &Quaff_frame,
+        .consumes_turn = true,
+        .prep_frame = prep_inv_frame,
+        // Should probably this but it lives the whole program
+        .ctx = malloc(sizeof(InvSlistCtx)),
+        .get_data_id = get_inv_data_id,
+        .data_id_type = DATA_ID_ENTITY_TARGET,
+    };
+    FILL_INV_SLIST_FRAME_CTX('q', QuaffAction, { .id = ecs_pair(EcsIsA, QuaffableItem) });
+
     gui_state[alpha_to_idx('m')] = (FrameData) {
         .frame = (rlsmenu_frame *) &sock_frame,
         .consumes_turn = false,
@@ -172,6 +184,7 @@ static enum rlsmenu_cb_res inv_slist_cb(rlsmenu_frame *frame, void *e)
 {
     FrameData *data = ((FrameState *) frame->state)->frame_data;
     InvSlistCtx *ctx = data->ctx;
+
     ecs_set_id(data->world, g_player_id, ctx->action, sizeof(InvItemAction), &(InvItemAction) { *(ecs_entity_t *) e });
     return RLSMENU_CB_SUCCESS;
 }

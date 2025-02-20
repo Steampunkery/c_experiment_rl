@@ -9,10 +9,12 @@ ECS_COMPONENT_DECLARE(Weight);
 ECS_COMPONENT_DECLARE(Value);
 ECS_COMPONENT_DECLARE(Satiation);
 ECS_COMPONENT_DECLARE(Stack);
+ECS_COMPONENT_DECLARE(Health);
 ECS_COMPONENT_DECLARE(Inventory);
 ECS_COMPONENT_DECLARE(MovementAction);
 ECS_COMPONENT_DECLARE(PickupAction);
 ECS_COMPONENT_DECLARE(DropAction);
+ECS_COMPONENT_DECLARE(QuaffAction);
 ECS_COMPONENT_DECLARE(AIController);
 ECS_COMPONENT_DECLARE(Glyph);
 ECS_COMPONENT_DECLARE(MyTurn);
@@ -24,10 +26,14 @@ ECS_COMPONENT_DECLARE(rlsmenu_gui);
 ECS_COMPONENT_DECLARE(Map);
 ECS_COMPONENT_DECLARE(InitiativeData);
 ECS_COMPONENT_DECLARE(MenuNetWrapper);
+ECS_COMPONENT_DECLARE(TimedStatusEffect);
 
 ECS_TAG_DECLARE(Invisible);
 ECS_TAG_DECLARE(MyTurn);
+ECS_TAG_DECLARE(Targets);
+ECS_TAG_DECLARE(HasQuaffEffect);
 ECS_TAG_DECLARE(InInventory);
+ECS_TAG_DECLARE(Poison);
 
 void register_components(ecs_world_t *world)
 {
@@ -37,10 +43,12 @@ void register_components(ecs_world_t *world)
     ECS_COMPONENT_DEFINE(world, Value);
     ECS_COMPONENT_DEFINE(world, Satiation);
     ECS_COMPONENT_DEFINE(world, Stack);
+    ECS_COMPONENT_DEFINE(world, Health);
     ECS_COMPONENT_DEFINE(world, Inventory);
     ECS_COMPONENT_DEFINE(world, MovementAction);
     ECS_COMPONENT_DEFINE(world, PickupAction);
     ECS_COMPONENT_DEFINE(world, DropAction);
+    ECS_COMPONENT_DEFINE(world, QuaffAction);
     ECS_COMPONENT_DEFINE(world, AIController);
     ECS_COMPONENT_DEFINE(world, Glyph);
     ECS_COMPONENT_DEFINE(world, Religious);
@@ -49,12 +57,16 @@ void register_components(ecs_world_t *world)
     ECS_COMPONENT_DEFINE(world, Renderable);
     ECS_COMPONENT_DEFINE(world, InitiativeData);
     ECS_COMPONENT_DEFINE(world, MenuNetWrapper);
+    ECS_COMPONENT_DEFINE(world, TimedStatusEffect);
 
     ECS_TAG_DEFINE(world, Invisible);
     ECS_TAG_DEFINE(world, MyTurn);
+    ECS_TAG_DEFINE(world, Targets);
+    ECS_TAG_DEFINE(world, HasQuaffEffect);
     ECS_TAG_DEFINE(world, InInventory);
     // NOTE: Union relationships cannot have data
     ecs_add_id(world, InInventory, EcsUnion);
+    ECS_TAG_DEFINE(world, Poison);
 
     ECS_COMPONENT_DEFINE(world, Map);
     ECS_COMPONENT_DEFINE(world, rlsmenu_gui);

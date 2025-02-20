@@ -9,6 +9,7 @@ ECS_PREFAB_DECLARE(Item);
 ECS_PREFAB_DECLARE(GoldItem);
 ECS_PREFAB_DECLARE(FoodItem);
 ECS_PREFAB_DECLARE(WeaponItem);
+ECS_PREFAB_DECLARE(QuaffableItem);
 
 ECS_PREFAB_DECLARE(Monster);
 ECS_PREFAB_DECLARE(Goblin);
@@ -38,11 +39,15 @@ void register_prefabs(ecs_world_t *world)
     ecs_set(world, WeaponItem, Weight, { 5 });
     ecs_set(world, WeaponItem, Glyph, { L'/' });
 
+    ECS_PREFAB_DEFINE(world, QuaffableItem, (IsA, Item));
+    ecs_set(world, QuaffableItem, Glyph, { L'!' });
+
     /* Monsters */
     ECS_PREFAB_DEFINE(world, Monster);
     ecs_set(world, Monster, Name, { L"PLACEHOLDER" });
     ecs_set(world, Monster, AIController, { do_nothing, NULL });
     ecs_set(world, Monster, InitiativeData, { 0, 10 });
+    ecs_set(world, Monster, Health, { 100 });
     ecs_set(world, Monster, Renderable, { true });
 
     ECS_PREFAB_DEFINE(world, Goblin, (IsA, Monster));
