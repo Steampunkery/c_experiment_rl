@@ -219,8 +219,8 @@ void ApplyPoison(ecs_iter_t *it)
     Health *health = ecs_field(it, Health, 1);
 
     for (int i = 0; i < it->count; i++) {
-        health[i].val -= 1;
-        log_msg(&g_debug_log, L"Poisoned: %d", health[i].val);
+        health->val -= 1;
+        log_msg(&g_debug_log, L"Poisoned: %d", health->val);
     }
 }
 

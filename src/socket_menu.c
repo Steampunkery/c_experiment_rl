@@ -209,7 +209,7 @@ void close_all_socket_menus()
     struct pollfd *pfd = poll_data.pollers;
     MenuNetWrapper **mnw = poll_data.menus;
     for (int i = 0; i < NPOLLS; i++, pfd++,  mnw++) {
-        if (*mnw && (*mnw)->sui.client_fd >= 0)
+        if (*mnw)
             dealloc_menu(mnw, pfd);
     }
 
