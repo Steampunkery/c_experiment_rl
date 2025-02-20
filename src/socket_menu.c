@@ -125,7 +125,7 @@ static bool mnw_update(MenuNetWrapper *mnw)
         return false;
 
     if (res > -1 && res < 256)
-        _log_msg(&g_debug_log, "Received %d on port %d", res, mnw->client_port);
+        log_msg(&g_debug_log, L"Received %d on port %d", res, mnw->client_port);
 
     // This squashes errors, but they should bubble up elsewhere
     res = rlsmenu_update(&mnw->gui, translate_sockui((char) res, &mnw->sui));
@@ -154,17 +154,19 @@ void do_poll()
     } while (n_events == -1 && errno == EINTR);
 }
 
-void server_pollin(MenuNetWrapper *mnw, struct pollfd *pfd)
+bool server_pollin(MenuNetWrapper *mnw, struct pollfd *pfd)
 {
     int ret = sockui_attach_client(&mnw->sui);
 
     if (ret == SOCKUI_ESYS) { // FIXME: better error handling
         log_msg(&g_game_log, L"Failed to attach menu");
         _log_msg(&g_debug_log, "sockui_attach_client: %s", strerror(errno));
-    } else {
-        log_msg(&g_game_log, L"Menu attached successfully");
-        pfd->fd = mnw->sui.client_fd; // Start polling on the client
+        return false;
     }
+
+    log_msg(&g_game_log, L"Menu attached successfully");
+    pfd->fd = mnw->sui.client_fd; // Start polling on the client
+    return true;
 }
 
 // TODO: Poll on client_fds?
@@ -186,14 +188,14 @@ void handle_socket_menus()
             continue;
 
         if (pfd->revents & (POLLERR | POLLNVAL | POLLHUP)) {
-            log_msg(&g_game_log, L"Menu on port %d polled %hX and was deallocated");
+            log_msg(&g_debug_log, L"Menu on port %d polled %hX and was deallocated");
             goto dealloc;
         }
 
-        if (pfd->revents & POLLIN) {
-            // We don't care about client POLLIN
-            if (pfd->fd == (*mnw)->sui.serv_fd)
-                server_pollin(*mnw, pfd);
+        // We don't care about client POLLIN
+        if (pfd->revents & POLLIN && pfd->fd == (*mnw)->sui.serv_fd) {
+            if (!server_pollin(*mnw, pfd) || !mnw_update(*mnw))
+                goto dealloc;
         }
 
         continue;

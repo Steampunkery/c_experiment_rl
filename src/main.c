@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 
             break;
         case RunSystems:
-            render_and_sock_menus(&game_windows);
+            ecs_run(world, render, 0.0, &game_windows);
             update_dijkstra_maps(world, map);
             ecs_run(world, ecs_id(AI), 0.0, NULL);
             ecs_run(world, ecs_id(Move), 0.0, NULL);
