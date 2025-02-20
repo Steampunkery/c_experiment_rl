@@ -32,12 +32,18 @@ ecs_entity_t g_player_id;
 int X_DIRS[] = { 1, 0, -1, 0, 1, -1, -1, 1 };
 int Y_DIRS[] = { 0, 1, 0, -1, 1, 1, -1, -1 };
 
+void try_endwin(int)
+{
+    endwin();
+}
+
 // TODO: Refactor this while damn file
 int main(int argc, char **argv)
 {
     /*for (volatile int i = 0; i == 0;);*/
     initialize_uncursed(&argc, argv);
     initscr();
+    signal(SIGABRT, try_endwin);
 
     if (LINES < MIN_TERM_LINES || COLS < MIN_TERM_COLS) {
         printf("Terminal must be at least %dx%d\n", MIN_TERM_COLS, MIN_TERM_LINES);
