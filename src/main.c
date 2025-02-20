@@ -85,20 +85,18 @@ int main(int argc, char **argv)
     // TODO!: Make these into a struct
     GameState state = PreTurn;
     KeyInfo key = { 0 };
-    bool is_player_turn = false;
     while (true) {
         switch (state) {
         case PreTurn:
             ecs_run(world, initiative, 0.0, NULL);
-            is_player_turn = ecs_has(world, g_player_id, MyTurn);
-            state = is_player_turn ? PlayerTurn : RunSystems;
+            state = ecs_has(world, g_player_id, MyTurn) ? PlayerTurn : RunSystems;
             break;
         case PlayerTurn:
             render_and_sock_menus(&game_windows);
             // TODO: Find a better way to handle the player's turn elegantly
             do {
                 CommandType cmd = get_command(&key, 7);
-                if (cmd == GUICommand || (cmd == PlayerGUICommand && is_player_turn)) {
+                if (cmd == GUICommand || cmd == PlayerGUICommand) {
                     state = NewGUIFrame;
                     break;
                 } else if (cmd == QuitCommand) {
@@ -107,7 +105,7 @@ int main(int argc, char **argv)
 
                 state = RunSystems;
                 // process_player_input returns whether the players turn is done
-            } while (is_player_turn && !process_player_input(world, key));
+            } while (!process_player_input(world, key));
 
             break;
         case RunSystems:
