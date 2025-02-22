@@ -70,8 +70,9 @@ enum rlsmenu_input translate_key(KeyInfo *key)
 #define TS_DN    0x42
 #define TS_PGUP  0x35
 #define TS_PGDN  0x36
-int translate_sockui(char c, sockui_t *sui)
+int translate_sockui(int c, sockui_t *sui)
 {
+    if (c == 256) return RLSMENU_INVALID_KEY;
     if (c != 'q' && c >= 'a' && c <= 'z') return c - 'a';
     else if (c >= 'A' && c <= 'Z') return c - 'A';
 

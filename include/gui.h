@@ -4,12 +4,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DATA_ID_ARG_SIZE 8
-
 typedef struct ecs_world_t ecs_world_t;
+typedef unsigned long ecs_entity_t;
 typedef struct KeyInfo KeyInfo;
 typedef struct rlsmenu_frame rlsmenu_frame;
-typedef enum { DATA_ID_ENTITY_TARGET, DATA_ID_STATIC } data_id_t;
+typedef enum { DATA_ID_PLAYER_TARGET, DATA_ID_PTR, DATA_ID_CONST } data_id_t;
 
 typedef struct FrameData FrameData;
 struct FrameData {
@@ -17,11 +16,19 @@ struct FrameData {
     ecs_world_t *world;
 
     bool consumes_turn;
+
     bool (*prep_frame)(FrameData *, ecs_world_t *, arena);
     void *ctx;
+    arena a;
+    wchar_t *title;
+
     uint32_t (*get_data_id)(FrameData *);
-    // Must be the same size as DATA_ID_ARG_SIZE
-    uint64_t data_id_arg;
+
+    union {
+        ecs_entity_t pl;
+        void *ptr;
+        uint64_t c;
+    } data_id_arg;
     data_id_t data_id_type;
 };
 

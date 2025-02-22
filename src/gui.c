@@ -3,6 +3,7 @@
 #include "arena.h"
 #include "component.h"
 #include "log.h"
+#include "rogue.h"
 #include "socket_menu.h"
 #include "prefab.h"
 
@@ -15,25 +16,8 @@
 
 typedef struct {
     ecs_query_desc_t query_desc;
-    ecs_id_t action;
+    ecs_id_t *action;
 } InvSlistCtx;
-
-typedef struct {
-    FrameData *frame_data;
-    arena a;
-} FrameState;
-
-#define FILL_INV_SLIST_FRAME_CTX(key, action_, ...)                     \
-    *(InvSlistCtx *) gui_state[alpha_to_idx(key)].ctx = (InvSlistCtx) { \
-        .query_desc = {                                                 \
-            .terms = {                                                  \
-                { .id = 0 /* gets filled in later */ },                 \
-                __VA_ARGS__                                             \
-            },                                                          \
-            .cache_kind = EcsQueryCacheNone                             \
-        },                                                              \
-        .action = ecs_id(action_)                                       \
-    }
 
 static enum rlsmenu_cb_res inv_slist_cb(rlsmenu_frame *frame, void *e);
 static enum rlsmenu_cb_res socket_menu_cb(rlsmenu_frame *frame, void *e);
@@ -49,8 +33,7 @@ rlsmenu_list inv_frame = {
         .frame = {
             .type = RLSMENU_LIST,
             .flags = RLSMENU_BORDER,
-            .title = L"Inventory",
-            .state = &(FrameState) { &gui_state[alpha_to_idx('i')], { 0 } },
+            .state = &gui_state[alpha_to_idx('i')],
             .cbs = &(rlsmenu_cbs) { NULL, on_complete, NULL },
         },
 
@@ -61,34 +44,40 @@ rlsmenu_list inv_frame = {
     },
 };
 
-#define DEFINE_INV_SLIST_FRAME(name, key)                                         \
-    rlsmenu_slist name##_frame = {                                                \
-        .s = {                                                                    \
-            .frame = {                                                            \
-                .type = RLSMENU_SLIST,                                            \
-                .flags = RLSMENU_BORDER,                                          \
-                .title = L###name,                                                \
-                .state = &(FrameState) { &gui_state[alpha_to_idx(key)], { 0 } },    \
-                .cbs = &(rlsmenu_cbs) { inv_slist_cb, on_complete, NULL },        \
-            },                                                                    \
-            .items = NULL,                                                        \
-            .item_size = 0,                                                       \
-            .n_items = 0,                                                         \
-            .item_names = NULL,                                                   \
-        },                                                                        \
-    }
+rlsmenu_slist inv_frame_tmpl = {
+    .s = {
+        .frame = {
+            .type = RLSMENU_SLIST,
+            .flags = RLSMENU_BORDER,
+            .title = NULL,
+            .state = NULL,
+            .cbs = &(rlsmenu_cbs) { inv_slist_cb, on_complete, NULL },
+        },
+        .items = NULL,
+        .item_size = 0,
+        .n_items = 0,
+        .item_names = NULL,
+    },
+};
 
-DEFINE_INV_SLIST_FRAME(Drop, 'd');
-DEFINE_INV_SLIST_FRAME(Quaff, 'q');
-#undef DEFINE_INV_SLIST_FRAME
+rlsmenu_msgbox log_frame_tmpl = {
+    .frame = {
+        .type = RLSMENU_MSGBOX,
+        .flags = RLSMENU_BORDER,
+        .title = NULL,
+        .state = NULL,
+        .cbs = &(rlsmenu_cbs) { NULL, on_complete, NULL },
+    },
+    .lines = NULL,
+    .n_lines = 0,
+};
 
 rlsmenu_slist sock_frame = {
     .s = {
         .frame = {
             .type = RLSMENU_SLIST,
             .flags = RLSMENU_BORDER,
-            .title = L"Socketize Menu",
-            .state = &(FrameState) { &gui_state[alpha_to_idx('m')], { 0 } },
+            .state = &gui_state[alpha_to_idx('m')],
             .cbs = &(rlsmenu_cbs) { socket_menu_cb, on_complete, NULL },
         },
 
@@ -99,81 +88,83 @@ rlsmenu_slist sock_frame = {
     },
 };
 
-rlsmenu_msgbox debug_log_frame = {
-    .frame = {
-        .type = RLSMENU_MSGBOX,
-        .flags = 0,
-        .title = L"Debug Log",
-        .state = &(FrameState) { &gui_state[alpha_to_idx('D')], { 0 } },
-        .cbs = &(rlsmenu_cbs) { NULL, on_complete, NULL },
-    },
+#define INV_ITEM_ACTION_FRAMEDATA(name, key)        \
+    [alpha_to_idx(key)] = (FrameData) {             \
+        .frame = (rlsmenu_frame *) &inv_frame_tmpl, \
+        .consumes_turn = true,                      \
+        .ctx = &(InvSlistCtx) {                     \
+            .query_desc = { 0 },                    \
+            .action = &ecs_id(name##Action)         \
+        },                                          \
+        .title = L###name,                          \
+        .prep_frame = prep_inv_frame,               \
+        .get_data_id = get_inv_data_id,             \
+        .data_id_type = DATA_ID_PLAYER_TARGET,      \
+    }
 
-    .lines = NULL,
-    .n_lines = 0,
-};
+#define LOGGER_FRAMEDATA(name, Title, key)          \
+    [alpha_to_idx(key)] = (FrameData) {             \
+        .frame = (rlsmenu_frame *) &log_frame_tmpl, \
+        .consumes_turn = false,                     \
+        .prep_frame = prep_logger_frame,            \
+        .title = Title,                             \
+        .get_data_id = get_logger_data_id,          \
+        .data_id_arg.ptr = &g_##name##_log,         \
+        .data_id_type = DATA_ID_PTR,                \
+    }
 
 /* Array of data to pass along with frame. For now, this bool indicates if
  * the completion of the frame should pass the player's turn. Suject to
  * change.
  */
 // FIXME: Make a struct that holds the filter and action and shit
-FrameData gui_state[52] = { 0 };
-
-void gui_init()
-{
-    gui_state[alpha_to_idx('i')] = (FrameData) {
+FrameData gui_state[52] = {
+    [alpha_to_idx('i')] = (FrameData) {
         .frame = (rlsmenu_frame *) &inv_frame,
         .consumes_turn = false,
         .prep_frame = prep_inv_frame,
         .ctx = NULL,
+        .title = L"Inventory",
         .get_data_id = get_inv_data_id,
-        .data_id_type = DATA_ID_ENTITY_TARGET,
-    };
+        .data_id_type = DATA_ID_PLAYER_TARGET,
+    },
 
-    gui_state[alpha_to_idx('d')] = (FrameData) {
-        .frame = (rlsmenu_frame *) &Drop_frame,
-        .consumes_turn = true,
-        .prep_frame = prep_inv_frame,
-        // Should probably this but it lives the whole program
-        .ctx = malloc(sizeof(InvSlistCtx)),
-        .get_data_id = get_inv_data_id,
-        .data_id_type = DATA_ID_ENTITY_TARGET,
-    };
-    FILL_INV_SLIST_FRAME_CTX('d', DropAction);
+    INV_ITEM_ACTION_FRAMEDATA(Drop, 'd'),
+    INV_ITEM_ACTION_FRAMEDATA(Quaff, 'q'),
 
-    gui_state[alpha_to_idx('q')] = (FrameData) {
-        .frame = (rlsmenu_frame *) &Quaff_frame,
-        .consumes_turn = true,
-        .prep_frame = prep_inv_frame,
-        // Should probably this but it lives the whole program
-        .ctx = malloc(sizeof(InvSlistCtx)),
-        .get_data_id = get_inv_data_id,
-        .data_id_type = DATA_ID_ENTITY_TARGET,
-    };
-    FILL_INV_SLIST_FRAME_CTX('q', QuaffAction, { .id = ecs_pair(EcsIsA, QuaffableItem) });
+    LOGGER_FRAMEDATA(game, L"Game log", 'G'),
+    LOGGER_FRAMEDATA(debug, L"Debug log", 'D'),
 
-    gui_state[alpha_to_idx('m')] = (FrameData) {
+    [alpha_to_idx('m')] = (FrameData) {
         .frame = (rlsmenu_frame *) &sock_frame,
         .consumes_turn = false,
         .prep_frame = prep_menu_select_frame,
-        .get_data_id = 0,
-        .data_id_type = DATA_ID_STATIC,
-    };
+        .title = L"Socketize Menu",
+        .get_data_id = NULL,
+        .data_id_arg.c = 0,
+        .data_id_type = DATA_ID_CONST,
+    },
+};
 
-    gui_state[alpha_to_idx('D')] = (FrameData) {
-        .frame = (rlsmenu_frame *) &debug_log_frame,
-        .consumes_turn = false,
-        .prep_frame = prep_logger_frame,
-        .get_data_id = get_logger_data_id,
-        .data_id_arg = (uint64_t) &g_debug_log,
-        .data_id_type = DATA_ID_STATIC,
-    };
+#define FILL_FRAMEDATA_CTX_INV_SLIST(key, ...)                          \
+    ((InvSlistCtx *) gui_state[alpha_to_idx(key)].ctx)->query_desc =    \
+        (ecs_query_desc_t) {                                            \
+            .terms = {                                                  \
+                { .id = 0 /* gets filled in later */ },                 \
+                __VA_ARGS__                                             \
+            },                                                          \
+            .cache_kind = EcsQueryCacheNone                             \
+        };
+
+void gui_init()
+{
+    FILL_FRAMEDATA_CTX_INV_SLIST('d');
+    FILL_FRAMEDATA_CTX_INV_SLIST('q', { .id = ecs_pair(EcsIsA, QuaffableItem) });
 }
 
 static void on_complete(rlsmenu_frame *frame)
 {
-    FrameState *fstate = frame->state;
-    rlsmenu_push_return(frame->parent, fstate->frame_data);
+    rlsmenu_push_return(frame->parent, frame->state);
 }
 
 /**
@@ -182,18 +173,18 @@ static void on_complete(rlsmenu_frame *frame)
  */
 static enum rlsmenu_cb_res inv_slist_cb(rlsmenu_frame *frame, void *e)
 {
-    FrameData *data = ((FrameState *) frame->state)->frame_data;
+    FrameData *data = frame->state;
     InvSlistCtx *ctx = data->ctx;
 
-    ecs_set_id(data->world, g_player_id, ctx->action, sizeof(InvItemAction), &(InvItemAction) { *(ecs_entity_t *) e });
+    ecs_set_id(data->world, g_player_id, ecs_pair(HasAction, *ctx->action), sizeof(InvItemAction), &(InvItemAction) { *(ecs_entity_t *) e });
     return RLSMENU_CB_SUCCESS;
 }
 
 static enum rlsmenu_cb_res socket_menu_cb(rlsmenu_frame *frame, void *f)
 {
+    FrameData *data = frame->state;
     FrameData *sel_data = *(void **) f;
-    FrameState *fstate = frame->state;
-    sel_data->world = fstate->frame_data->world;
+    sel_data->world = data->world;
 
     // TODO: Associate this with an entity in a way that makes sense. You need
     // to be able to destroy the entity when done, so having this pointer is
@@ -209,13 +200,21 @@ static enum rlsmenu_cb_res socket_menu_cb(rlsmenu_frame *frame, void *f)
     return RLSMENU_CB_SUCCESS;
 }
 
+static void prep_frame_common(FrameData *data, ecs_world_t *world, arena *a)
+{
+    data->frame->state = data;
+    data->world = world;
+    data->a = *a;
+
+    assert(data->title);
+    data->frame->title = data->title;
+}
+
 // TODO: Most of this is unnecessary and can be done at compile time...
 static bool prep_menu_select_frame(FrameData *data, ecs_world_t *world, arena a)
 {
-    FrameState *ctx = data->frame->state;
+    prep_frame_common(data, world, &a);
     rlsmenu_list_shared *s = (rlsmenu_list_shared *) data->frame;
-    data->world = world;
-    ctx->a = a;
 
     if (poll_data.n_menus == NPOLLS) {
         log_msg(&g_game_log, L"Maximum supported menus already open");
@@ -237,7 +236,7 @@ static bool prep_menu_select_frame(FrameData *data, ecs_world_t *world, arena a)
     f = s->items;
     s->item_names = alloc(&a, sizeof(void *), s->n_items);
     for (int i = 0; i < s->n_items; i++) {
-        s->item_names[i] = f[i]->frame->title;
+        s->item_names[i] = f[i]->title;
     }
 
     return true;
@@ -245,14 +244,15 @@ static bool prep_menu_select_frame(FrameData *data, ecs_world_t *world, arena a)
 
 static bool prep_inv_frame(FrameData *data, ecs_world_t *world, arena a)
 {
-    InvSlistCtx *ctx = data->ctx;
+    prep_frame_common(data, world, &a);
     rlsmenu_list_shared *s = (rlsmenu_list_shared *) data->frame;
-    data->world = world;
+
+    InvSlistCtx *ctx = data->ctx;
 
     // If there is no ctx, assume an inventory query with no filter
     ecs_query_desc_t *query_desc = ctx ? &ctx->query_desc : &(ecs_query_desc_t) {};
     // The entity target of InInventory is not known until now
-    query_desc->terms[0].id = ecs_pair(InInventory, data->data_id_arg);
+    query_desc->terms[0].id = ecs_pair(InInventory, data->data_id_arg.pl);
     ecs_query_t *q = ecs_query_init(world, query_desc);
     ecs_iter_t it = ecs_query_iter(world, q);
 
@@ -266,7 +266,6 @@ static bool prep_inv_frame(FrameData *data, ecs_world_t *world, arena a)
         for (int i = 0; i < it.count; i++) {
             e = alloc(&a, sizeof(*e), 1);
             *e = it.entities[i];
-            assert(ecs_has_pair(world, *e, InInventory, data->data_id_arg));
         }
     }
 
@@ -287,28 +286,28 @@ static bool prep_inv_frame(FrameData *data, ecs_world_t *world, arena a)
 
 static bool prep_logger_frame(FrameData *data, ecs_world_t *world, arena a)
 {
+    prep_frame_common(data, world, &a);
     rlsmenu_msgbox *m = (rlsmenu_msgbox *) data->frame;
-    Logger *l = (Logger *) data->data_id_arg;
-    data->world = world;
 
-    int n_msgs = l->data_id > MAX_LOG_MSGS ? MAX_LOG_MSGS : l->data_id;
-    if (n_msgs == 0) return false;
+    Logger *l = data->data_id_arg.ptr;
 
-    m->n_lines = n_msgs;
-    m->lines = alloc(&a, sizeof(*m->lines), n_msgs);
-    for (int i = 1; i <= n_msgs; i++)
-        m->lines[n_msgs - i] =  l->msgs[(l->head - i) & (MAX_LOG_MSGS - 1)];
+    m->n_lines = l->data_id > MAX_LOG_MSGS ? MAX_LOG_MSGS : l->data_id;
+    if (m->n_lines == 0) return true;
+
+    m->lines = alloc(&a, sizeof(*m->lines), m->n_lines);
+    for (int i = 1; i <= m->n_lines; i++)
+        m->lines[m->n_lines - i] =  l->msgs[(l->head - i) & (MAX_LOG_MSGS - 1)];
 
     return true;
 }
 
 static uint32_t get_inv_data_id(FrameData *data)
 {
-    Inventory *inv = ecs_get_mut(data->world, (ecs_entity_t) data->data_id_arg, Inventory);
+    Inventory *inv = ecs_get_mut(data->world, data->data_id_arg.pl, Inventory);
     return inv->data_id;
 }
 
 static uint32_t get_logger_data_id(FrameData *data)
 {
-    return ((Logger *) data->data_id_arg)->data_id;
+    return ((Logger *) data->data_id_arg.ptr)->data_id;
 }

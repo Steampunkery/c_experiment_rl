@@ -4,6 +4,8 @@
 
 #include "flecs.h"
 
+// TODO: Refactor this and religion so that observers aren't necessary
+// this is a bad use case of observers according to the docs
 /* NOTE: Many functions in this file assume that any entity with the
  * Invisible tag also have the Renderable component. Look at this code
  * again if this assumption changes.

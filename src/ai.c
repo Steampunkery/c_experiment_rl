@@ -9,11 +9,13 @@
 #include "flecs.h"
 #include <stdlib.h>
 
+#define set_wait_action(e) ecs_set_pair_second(world, e, HasAction, MovementAction, { 0, 0, 100 });
+
 void left_walker(ecs_world_t *world, ecs_entity_t e, void *arg)
 {
     (void) arg;
-    MovementAction mov = { -1, 0, 100 };
-    try_move_entity(world, e, &mov);
+    if (!try_move_entity(world, e, &(MovementAction) { -1, 0, 100 }))
+        set_wait_action(e);
 }
 
 void do_nothing(ecs_world_t *world, ecs_entity_t e, void *arg)
@@ -34,7 +36,8 @@ void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
         try_move_entity(world, e, &ma);
     } else {
         ecs_entity_t gold = get_typed_item_at_pos(world, map, GoldItem, pos->x, pos->y);
-        if (gold) ecs_set(world, e, PickupAction, { gold });
+        if (gold)
+            ecs_set_pair_second(world, e, HasAction, PickupAction, { gold });
     }
 }
 
@@ -52,7 +55,8 @@ void pet_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
         ma = (MovementAction) { pos->x, pos->y, get_cost_for_movement(pos->x, pos->y)};
     }
 
-    try_move_entity(world, e, &ma);
+    if (!try_move_entity(world, e, &ma))
+        set_wait_action(e);
 }
 
 MovementAction dm_flow_downhill(DijkstraMap *dm, Map *map, const Position *pos)

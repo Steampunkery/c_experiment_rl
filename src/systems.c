@@ -10,7 +10,6 @@
 
 ecs_entity_t render;
 ecs_entity_t initiative;
-ecs_query_t *initiative_q;
 
 ECS_SYSTEM_DECLARE(Move);
 ECS_SYSTEM_DECLARE(Pickup);
@@ -23,12 +22,13 @@ ECS_SYSTEM_DECLARE(StatusEffectTimer);
 
 void register_systems(ecs_world_t *world)
 {
-    ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, MovementAction, InitiativeData);
-    ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, PickupAction, Position, InitiativeData);
-    ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, DropAction, Position, InitiativeData);
-    ECS_SYSTEM_DEFINE(world, Quaff, EcsOnUpdate, Inventory, QuaffAction, InitiativeData);
     ECS_SYSTEM_DEFINE(world, AI, EcsOnUpdate, AIController, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, PrayerAction, InitiativeData);
+    ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, (HasAction, MovementAction), InitiativeData, MyTurn);
+    ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, (HasAction, PickupAction), Position, InitiativeData, MyTurn);
+    ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, (HasAction, DropAction), Position, InitiativeData, MyTurn);
+    ECS_SYSTEM_DEFINE(world, Quaff, EcsOnUpdate, Inventory, (HasAction, QuaffAction), InitiativeData, MyTurn);
+    ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, (HasAction, PrayerAction), InitiativeData, MyTurn);
+
     ECS_SYSTEM_DEFINE(world, ApplyPoison, EcsOnUpdate, (Targets, $t), Health($t), Poison, MyTurn);
     ECS_SYSTEM_DEFINE(world, StatusEffectTimer, EcsOnUpdate, TimedStatusEffect, InitiativeData, MyTurn);
 
@@ -41,44 +41,38 @@ void register_systems(ecs_world_t *world)
         .run = Render
     });
 
-    initiative_q = ecs_query(world, {
-        .terms = { { .id = ecs_id(InitiativeData) } },
-        .cache_kind = EcsQueryCacheAuto,
-    });
-
     initiative = ecs_system(world, {
+        .query.terms = {
+            { .id = ecs_id(InitiativeData) }
+        },
         .run = Initiative
     });
 }
 
-void Initiative(ecs_iter_t *it_)
+void Initiative(ecs_iter_t *it)
 {
-    ecs_iter_t it = ecs_query_iter(it_->world, initiative_q);
     bool would_grant_turn = false;
 
     // Give initiatiive points until someone has a turn
     do {
-        while (ecs_query_next(&it)) {
-            InitiativeData *init = ecs_field(&it, InitiativeData, 0);
+        while (ecs_query_next(it)) {
+            InitiativeData *init = ecs_field(it, InitiativeData, 0);
 
-            for (int i = 0; i < it.count; i++) {
+            for (int i = 0; i < it->count; i++) {
                 init[i].points += init[i].increment;
                 if (init[i].points >= 0) would_grant_turn = true;
             }
         }
 
-        it = ecs_query_iter(it_->world, initiative_q);
+        *it = ecs_query_iter(it->world, it->query);
     } while (!would_grant_turn);
 
     // Grant turns to all eligible entities
-    while(ecs_query_next(&it)) {
-        InitiativeData *init = ecs_field(&it, InitiativeData, 0);
+    while(ecs_query_next(it)) {
+        InitiativeData *init = ecs_field(it, InitiativeData, 0);
 
-        for (int i = 0; i < it.count; i++)
-            if (init[i].points >= 0)
-                ecs_add(it.world, it.entities[i], MyTurn);
-            else
-                ecs_remove(it.world, it.entities[i], MyTurn);
+        for (int i = 0; i < it->count; i++)
+            ecs_enable_component(it->world, it->entities[i], MyTurn, init[i].points >= 0);
     }
 }
 
@@ -92,7 +86,6 @@ void Move(ecs_iter_t *it)
         pos[i].x += mov[i].x;
         pos[i].y += mov[i].y;
         init[i].points -= mov[i].cost;
-        ecs_remove(it->world, it->entities[i], MovementAction);
     }
 }
 
@@ -122,7 +115,6 @@ void Pickup(ecs_iter_t *it)
                 ecs_add_pair(it->world, e, InInventory, it->entities[i]);
         }
         init[i].points -= 50;
-        ecs_remove(it->world, it->entities[i], PickupAction);
     }
 }
 
@@ -143,7 +135,6 @@ void Drop(ecs_iter_t *it)
         ecs_remove_pair(it->world, da[i].entity, InInventory, it->entities[i]);
 
         init[i].points -= 50;
-        ecs_remove(it->world, it->entities[i], DropAction);
     }
 }
 
@@ -182,7 +173,6 @@ void Quaff(ecs_iter_t *it)
         ecs_delete(it->world, e);
 
         init[i].points -= 50;
-        ecs_remove(it->world, it->entities[i], QuaffAction);
     }
 
 }
@@ -210,7 +200,6 @@ void Prayer(ecs_iter_t *it)
         }
 
         init[i].points -= 200;
-        ecs_remove(it->world, it->entities[i], PrayerAction);
     }
 }
 

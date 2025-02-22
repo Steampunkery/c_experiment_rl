@@ -42,6 +42,8 @@ extern ECS_TAG_DECLARE(Targets);
 extern ECS_TAG_DECLARE(HasQuaffEffect);
 extern ECS_TAG_DECLARE(InInventory);
 extern ECS_TAG_DECLARE(Poison);
+extern ECS_TAG_DECLARE(HasAction);
+extern ECS_TAG_DECLARE(ActionFromSocket);
 
 typedef struct Name {
     wchar_t *s;

@@ -95,12 +95,20 @@ int main(int argc, char **argv)
         switch (state) {
         case PreTurn:
             ecs_run(world, initiative, 0.0, NULL);
-            state = ecs_has(world, g_player_id, MyTurn) ? PlayerTurn : RunSystems;
+            state = ecs_is_enabled(world, g_player_id, MyTurn) ? PlayerTurn : RunSystems;
             break;
         case PlayerTurn:
-            render_and_sock_menus(&game_windows);
+            ecs_run(world, render, 0.0, &game_windows);
+
             // TODO: Find a better way to handle the player's turn elegantly
             do {
+                handle_socket_menus();
+                if (ecs_is_enabled(world, g_player_id, ActionFromSocket)) {
+                    ecs_enable_component(world, g_player_id, ActionFromSocket, false);
+                    state = RunSystems;
+                    break;
+                }
+
                 CommandType cmd = get_command(&key, 7);
                 if (cmd == GUICommand || cmd == PlayerGUICommand) {
                     state = NewGUIFrame;
@@ -133,8 +141,8 @@ int main(int argc, char **argv)
             int idx = alpha_to_idx(key.key);
             assert(idx >= 0);
 
-            if (gui_state[idx].data_id_type == DATA_ID_ENTITY_TARGET)
-                memcpy(&gui_state[idx].data_id_arg, (void *) &g_player_id, DATA_ID_ARG_SIZE);
+            if (gui_state[idx].data_id_type == DATA_ID_PLAYER_TARGET)
+                gui_state[idx].data_id_arg.pl = g_player_id;
 
             if (!gui_state[idx].prep_frame(&gui_state[idx], world, frame_arena)) {
                 state = PlayerTurn;
@@ -208,6 +216,8 @@ CommandType get_command(KeyInfo *key, int msec_timeout)
                 case 'm':
                     return GUICommand;
                 case 'D':
+                    return GUICommand;
+                case 'G':
                     return GUICommand;
                 default:
                     return HeroCommand;

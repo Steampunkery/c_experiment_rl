@@ -7,6 +7,7 @@
 #include "input.h"
 
 #include "rlsmenu.h"
+#include "rogue.h"
 #include "sockui.h"
 #include <assert.h>
 #include <errno.h>
@@ -104,8 +105,8 @@ static bool mnw_update(MenuNetWrapper *mnw)
 {
     FrameData *data = mnw->frame_data;
 
-    if (data->data_id_type == DATA_ID_ENTITY_TARGET)
-        memcpy(&data->data_id_arg, (void *) &g_player_id, DATA_ID_ARG_SIZE);
+    if (data->data_id_type == DATA_ID_PLAYER_TARGET)
+        data->data_id_arg.pl = g_player_id;
 
     // If the underlying data has been invalidated, throw out the menu and start again
     // TODO: Find a less expensive way of updating changed menus?
@@ -126,14 +127,23 @@ static bool mnw_update(MenuNetWrapper *mnw)
 
     if (res > -1 && res < 256)
         log_msg(&g_debug_log, L"Received %d on port %d", res, mnw->client_port);
+    else if (res == SOCKUI_ESYS)
+        return false;
+    else if (res != 256)
+        assert(!"Programmer Error!");
 
     // This squashes errors, but they should bubble up elsewhere
-    res = rlsmenu_update(&mnw->gui, translate_sockui((char) res, &mnw->sui));
+    res = rlsmenu_update(&mnw->gui, translate_sockui(res, &mnw->sui));
     switch (res) {
         case RLSMENU_CONT:
             rlsmenu_str s = rlsmenu_get_menu_str(&mnw->gui);
             return !s.has_changed || (sockui_draw_menu(&mnw->sui, s.str, (int[2]) { s.h, s.w }) == 0);
         case RLSMENU_DONE:
+            FrameData *fd = rlsmenu_pop_return(&mnw->gui);
+            assert(fd);
+            if (fd->consumes_turn)
+                ecs_enable_component(data->world, g_player_id, ActionFromSocket, true);
+            /* FALLTHROUGH */
         case RLSMENU_CANCELED:
             return false;
         default:
@@ -142,16 +152,19 @@ static bool mnw_update(MenuNetWrapper *mnw)
 }
 
 // TODO: Do better error handling here?
-void do_poll()
+int do_poll()
 {
     int n_events;
     do {
         n_events = poll(poll_data.pollers, NPOLLS, 0);
-        if (n_events == -1 && errno == ENOMEM) {
+        if (n_events == -1 && errno != EINTR) {
             perror("poll");
             exit(1);
         }
     } while (n_events == -1 && errno == EINTR);
+    assert(n_events >= 0);
+
+    return n_events;
 }
 
 bool server_pollin(MenuNetWrapper *mnw, struct pollfd *pfd)
