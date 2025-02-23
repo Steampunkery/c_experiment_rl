@@ -44,7 +44,7 @@ void dealloc_menu(MenuNetWrapper **mnw, struct pollfd *pfd)
     *pfd = (struct pollfd) { -1, 0, 0 };
     sockui_close(&(*mnw)->sui);
     rlsmenu_gui_deinit(&(*mnw)->gui);
-    free(*mnw);
+    mnw_free(*mnw);
     *mnw = NULL; // May use this as an invariant
     poll_data.n_menus--;
 }
@@ -139,11 +139,17 @@ static bool mnw_update(MenuNetWrapper *mnw)
             rlsmenu_str s = rlsmenu_get_menu_str(&mnw->gui);
             return !s.has_changed || (sockui_draw_menu(&mnw->sui, s.str, (int[2]) { s.h, s.w }) == 0);
         case RLSMENU_DONE:
+            if (mnw->gui.frame_stack)
+                return true;
+
             FrameData *fd = rlsmenu_pop_return(&mnw->gui);
             assert(fd);
             if (fd->consumes_turn)
                 ecs_enable_component(data->world, g_player_id, ActionFromSocket, true);
-            /* FALLTHROUGH */
+
+            // Ensures menu is automatically recreated on next update
+            mnw->last_data_id = -1;
+            return true;
         case RLSMENU_CANCELED:
             return false;
         default:

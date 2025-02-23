@@ -186,6 +186,10 @@ static enum rlsmenu_cb_res socket_menu_cb(rlsmenu_frame *frame, void *f)
     FrameData *sel_data = *(void **) f;
     sel_data->world = data->world;
 
+    if (poll_data.n_menus == NPOLLS) {
+        log_msg(&g_game_log, L"Maximum supported menus already open");
+        return RLSMENU_CB_FAILURE;
+    }
     // TODO: Associate this with an entity in a way that makes sense. You need
     // to be able to destroy the entity when done, so having this pointer is
     // not (necessarily) enough. We want these associated with entities so they
@@ -215,11 +219,6 @@ static bool prep_menu_select_frame(FrameData *data, ecs_world_t *world, arena a)
 {
     prep_frame_common(data, world, &a);
     rlsmenu_list_shared *s = (rlsmenu_list_shared *) data->frame;
-
-    if (poll_data.n_menus == NPOLLS) {
-        log_msg(&g_game_log, L"Maximum supported menus already open");
-        return false;
-    }
 
     s->items = peeka(&a);
     s->item_size = sizeof(void *);

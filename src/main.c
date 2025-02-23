@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
             if (!gui_state[idx].prep_frame(&gui_state[idx], world, frame_arena)) {
                 state = PlayerTurn;
-                continue;
+                break;
             }
             rlsmenu_gui_push(gui, gui_state[idx].frame);
             render_and_sock_menus(&game_windows);
@@ -157,6 +157,10 @@ int main(int argc, char **argv)
             get_command(&key, -1);
             enum rlsmenu_result res = rlsmenu_update(gui, translate_key(&key));
             render_and_sock_menus(&game_windows);
+
+            // Only process results and exit GUI state when last frame completes
+            if (gui->frame_stack)
+                break;
 
             switch (res) {
             case RLSMENU_DONE:
