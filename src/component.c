@@ -22,7 +22,6 @@ ECS_COMPONENT_DECLARE(Religious);
 ECS_COMPONENT_DECLARE(PrayerAction);
 ECS_COMPONENT_DECLARE(SeeInvisible);
 ECS_COMPONENT_DECLARE(Renderable);
-ECS_COMPONENT_DECLARE(rlsmenu_gui);
 ECS_COMPONENT_DECLARE(Map);
 ECS_COMPONENT_DECLARE(InitiativeData);
 ECS_ON_ADD(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
@@ -79,7 +78,6 @@ void register_components(ecs_world_t *world)
     ecs_add_id(world, ActionFromSocket, EcsCanToggle);
 
     ECS_COMPONENT_DEFINE(world, Map);
-    ECS_COMPONENT_DEFINE(world, rlsmenu_gui);
 }
 
 bool inv_full(const Inventory *inv)

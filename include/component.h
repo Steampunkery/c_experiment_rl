@@ -30,7 +30,6 @@ extern ECS_COMPONENT_DECLARE(Religious);
 extern ECS_COMPONENT_DECLARE(PrayerAction);
 extern ECS_COMPONENT_DECLARE(SeeInvisible);
 extern ECS_COMPONENT_DECLARE(Renderable);
-extern ECS_COMPONENT_DECLARE(rlsmenu_gui);
 extern ECS_COMPONENT_DECLARE(Map);
 extern ECS_COMPONENT_DECLARE(InitiativeData);
 extern ECS_COMPONENT_DECLARE(MenuNetWrapper);

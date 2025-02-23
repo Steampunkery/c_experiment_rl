@@ -42,8 +42,6 @@ void alloc_menu(MenuNetWrapper *mnw)
 void dealloc_menu(MenuNetWrapper **mnw, struct pollfd *pfd)
 {
     *pfd = (struct pollfd) { -1, 0, 0 };
-    sockui_close(&(*mnw)->sui);
-    rlsmenu_gui_deinit(&(*mnw)->gui);
     mnw_free(*mnw);
     *mnw = NULL; // May use this as an invariant
     poll_data.n_menus--;

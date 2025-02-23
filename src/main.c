@@ -24,7 +24,7 @@
 
 CommandType get_command(KeyInfo *key, int msec_timeout);
 void temp_map_init(ecs_world_t *world, Map *map);
-void render_and_sock_menus(WindowHolder *wh);
+void render_and_sock_menus(GameVars *vars);
 
 static ecs_world_t *world;
 ecs_entity_t g_player_id;
@@ -54,11 +54,7 @@ int main(int argc, char **argv)
     curs_set(0);
     WINDOW *basewin = newwin(LINES - 2, COLS, 1, 0);
     WINDOW *logwin = newwin(1, COLS, 0, 0);
-
-    WindowHolder game_windows = {
-        .base = basewin,
-        .log = logwin,
-    };
+    WINDOW *statuswin = newwin(1, COLS, LINES - 1, 0);
 
     init_logger(&g_game_log);
     init_logger(&g_debug_log);
@@ -79,51 +75,58 @@ int main(int argc, char **argv)
     item_init(world);
     gui_init();
 
-    rlsmenu_gui *gui = ecs_singleton_ensure(world, rlsmenu_gui);
-    rlsmenu_gui_init(gui);
+    rlsmenu_gui gui;
+    rlsmenu_gui_init(&gui);
     arena frame_arena = new_arena(1 << 12);
     if (!frame_arena.beg)
         goto done;
 
     temp_map_init(world, map);
 
+    GameVars vars = {
+        .state = PreTurn,
+        .basewin = basewin,
+        .logwin = logwin,
+        .statuswin = statuswin,
+        .gui = &gui
+    };
+
     // Put state variables here.
     // TODO!: Make these into a struct
-    GameState state = PreTurn;
     KeyInfo key = { 0 };
     while (true) {
-        switch (state) {
+        switch (vars.state) {
         case PreTurn:
             ecs_run(world, initiative, 0.0, NULL);
-            state = ecs_is_enabled(world, g_player_id, MyTurn) ? PlayerTurn : RunSystems;
+            vars.state = ecs_is_enabled(world, g_player_id, MyTurn) ? PlayerTurn : RunSystems;
             break;
         case PlayerTurn:
-            ecs_run(world, render, 0.0, &game_windows);
+            ecs_run(world, render, 0.0, &vars);
 
             // TODO: Find a better way to handle the player's turn elegantly
             do {
                 handle_socket_menus();
                 if (ecs_is_enabled(world, g_player_id, ActionFromSocket)) {
                     ecs_enable_component(world, g_player_id, ActionFromSocket, false);
-                    state = RunSystems;
+                    vars.state = RunSystems;
                     break;
                 }
 
                 CommandType cmd = get_command(&key, 7);
                 if (cmd == GUICommand || cmd == PlayerGUICommand) {
-                    state = NewGUIFrame;
+                    vars.state = NewGUIFrame;
                     break;
                 } else if (cmd == QuitCommand) {
                     goto done;
                 }
 
-                state = RunSystems;
+                vars.state = RunSystems;
                 // process_player_input returns whether the players turn is done
             } while (!process_player_input(world, key));
 
             break;
         case RunSystems:
-            ecs_run(world, render, 0.0, &game_windows);
+            ecs_run(world, render, 0.0, &vars);
             update_dijkstra_maps(world, map);
             ecs_run(world, ecs_id(AI), 0.0, NULL);
             ecs_run(world, ecs_id(Move), 0.0, NULL);
@@ -135,7 +138,7 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(ApplyPoison), 0.0, NULL);
             ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
 
-            state = PreTurn;
+            vars.state = PreTurn;
             break;
         case NewGUIFrame:
             int idx = alpha_to_idx(key.key);
@@ -145,31 +148,31 @@ int main(int argc, char **argv)
                 gui_state[idx].data_id_arg.pl = g_player_id;
 
             if (!gui_state[idx].prep_frame(&gui_state[idx], world, frame_arena)) {
-                state = PlayerTurn;
+                vars.state = PlayerTurn;
                 break;
             }
-            rlsmenu_gui_push(gui, gui_state[idx].frame);
-            render_and_sock_menus(&game_windows);
+            rlsmenu_gui_push(&gui, gui_state[idx].frame);
+            render_and_sock_menus(&vars);
 
-            state = GUI;
+            vars.state = GUI;
             // FALLTHROUGH
         case GUI:
             get_command(&key, -1);
-            enum rlsmenu_result res = rlsmenu_update(gui, translate_key(&key));
-            render_and_sock_menus(&game_windows);
+            enum rlsmenu_result res = rlsmenu_update(&gui, translate_key(&key));
+            render_and_sock_menus(&vars);
 
             // Only process results and exit GUI state when last frame completes
-            if (gui->frame_stack)
+            if (gui.frame_stack)
                 break;
 
             switch (res) {
             case RLSMENU_DONE:
-                FrameData *fd = rlsmenu_pop_return(gui);
+                FrameData *fd = rlsmenu_pop_return(&gui);
                 assert(fd);
-                state = fd->consumes_turn ? RunSystems : PlayerTurn;
+                vars.state = fd->consumes_turn ? RunSystems : PlayerTurn;
                 break;
             case RLSMENU_CANCELED:
-                state = PlayerTurn;
+                vars.state = PlayerTurn;
                 break;
             case RLSMENU_CONT:;
             }
@@ -180,7 +183,7 @@ int main(int argc, char **argv)
 done:
     close_all_socket_menus();
     destroy_map(map);
-    rlsmenu_gui_deinit(gui);
+    rlsmenu_gui_deinit(&gui);
     ecs_fini(world);
 uncursed_done:
     delwin(basewin);
@@ -309,8 +312,8 @@ void temp_map_init(ecs_world_t *world, Map *map)
     place_item(world, poison_potion2, 18, 24);
 }
 
-void render_and_sock_menus(WindowHolder *wh)
+void render_and_sock_menus(GameVars *vars)
 {
-    ecs_run(world, render, 0.0, wh);
+    ecs_run(world, render, 0.0, vars);
     handle_socket_menus();
 }

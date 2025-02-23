@@ -28,3 +28,15 @@ typedef enum {
     CancelCommand,
     SuccessCommand
 } CommandType;
+
+typedef struct WINDOW WINDOW;
+typedef struct rlsmenu_gui rlsmenu_gui;
+
+typedef struct {
+    GameState state;
+    WINDOW *basewin;
+    WINDOW *logwin;
+    WINDOW *statuswin;
+    rlsmenu_gui *gui;
+} GameVars;
+
