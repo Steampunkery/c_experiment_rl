@@ -3,9 +3,11 @@
 #include "component.h"
 #include "prefab.h"
 #include "rogue.h"
+#include "ds.h"
 
 #include "flecs.h"
-#include <glib.h>
+
+#include <stdlib.h>
 
 static ecs_query_t *item_q;
 
@@ -30,8 +32,8 @@ Map *new_map(Map *map, int rows, int cols)
         else
             map->grid[i][0] = map->grid[i][cols - 1] = Wall;
 
-    GArray *init = NULL;
-    map->items = (GArray ***) new_grid(rows, cols, sizeof(**map->items), &init);
+    entity_vec init = { 0 };
+    map->items = (entity_vec **) new_grid(rows, cols, sizeof(**map->items), &init);
 
     map->dijkstra_sources = malloc(sizeof(*map->dijkstra_sources) * rows * cols);
     map->dijkstra_maps[DM_ORDER_GOLD] = (DMWrapper) {
@@ -70,8 +72,7 @@ void destroy_map(Map *map)
 
     for (int i = 0; i < map->rows; i++)
         for (int j = 0; j < map->cols; j++)
-            if (map->items[i][j])
-                g_array_unref(map->items[i][j]);
+            entity_vec_clear(&map->items[i][j]);
 
     destroy_grid(map->items);
     destroy_grid(map->grid);
@@ -145,34 +146,30 @@ bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off)
 // Assumes in-bounds
 void map_place_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
 {
-    GArray *items = map->items[y][x];
-    if (!items)
-        items = map->items[y][x] = g_array_sized_new(FALSE, TRUE, sizeof(ecs_entity_t), 8);
-    g_array_append_val(items, e);
+    entity_vec_push(&map->items[y][x], e);
     mark_prefab_dms_dirty(world, map, e);
 }
 
 ecs_entity_t map_pickup_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
 {
-    GArray *items = map->items[y][x];
-    if (!map->items[y][x] || items->len == 0) return 0;
+    entity_vec *items = &map->items[y][x];
+    if (items->size == 0) return 0;
 
-    guint i = 0;
+    int i = 0;
     ecs_entity_t item;
     if (e == 0) {
-        item = g_array_index(items, ecs_entity_t, 0);
+        item = items->data[0];
     } else {
-        for (; i < items->len; i++) {
-            item = g_array_index(items, ecs_entity_t, i);
-            if (item == e) break;
+        for (; i < items->size; i++) {
+            if (items->data[i] == e) break;
         }
-        if (i == items->len) return 0;
+        if (i == items->size) return 0;
+        item = items->data[i];
     }
 
-    e = item;
-    g_array_remove_index_fast(items, i);
-    mark_prefab_dms_dirty(world, map, e);
-    return e;
+    entity_vec_erase_n(items, i, 1);
+    mark_prefab_dms_dirty(world, map, item);
+    return item;
 }
 
 void dijkstra_init(ecs_world_t *world)

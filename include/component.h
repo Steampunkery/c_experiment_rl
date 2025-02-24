@@ -45,7 +45,7 @@ extern ECS_TAG_DECLARE(HasAction);
 extern ECS_TAG_DECLARE(ActionFromSocket);
 
 typedef struct Name {
-    wchar_t *s;
+    wchar_t const *s;
 } Name;
 
 typedef struct Position {

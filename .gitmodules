@@ -1,9 +1,9 @@
-[submodule "lib/DijkstraMap"]
-	path = lib/DijkstraMap
-	url = git@github.com:Steampunkery/DijkstraMap.git
 [submodule "lib/rlsmenu"]
 	path = lib/rlsmenu
 	url = git@github.com:Steampunkery/rlsmenu.git
 [submodule "lib/sockui"]
 	path = lib/sockui
 	url = git@github.com:Steampunkery/sockui.git
+[submodule "lib/dijkstra"]
+	path = lib/dijkstra
+	url = git@github.com:Steampunkery/DijkstraMap

@@ -16,11 +16,12 @@
 
 #include "rlsmenu.h"
 #include "flecs.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
 #include <uncursed/uncursed.h>
-#include <glib.h>
+#include <signal.h>
 
 CommandType get_command(KeyInfo *key, int msec_timeout);
 void temp_map_init(ecs_world_t *world, Map *map);

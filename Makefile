@@ -24,20 +24,19 @@ NAME        := roguelike
 # LDFLAGS     linker flags
 # LDLIBS      libraries name
 
-LIBS        := m uncursed glib-2.0 dijkstra rlsmenu flecs sockui
-LIBS_TARGET := lib/uncursed/libuncursed.a lib/rlsmenu/librlsmenu.a lib/flecs/libflecs.a \
-			   lib/DijkstraMap/libdijkstra.a lib/sockui/libsockui.a
+LIBS        := m uncursed dijkstra rlsmenu flecs sockui
+LIBS_TARGET := uncursed dijkstra rlsmenu flecs sockui
 # These .o files will be forced into the final executable. This is required for uncursed to work
-LIBS_FORCED_OBJS := $(addprefix lib/uncursed/src/,plugins/tty.o plugins/wrap_tty.o)
+LIB_FORCED_OBJS := $(addprefix lib/uncursed/src/,plugins/tty.o plugins/wrap_tty.o)
 
 ROOT_DIR    := $(shell realpath .)
-INCS        := include lib/uncursed/include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include lib/sockui
+INCS        := include lib/uncursed/include lib/rlsmenu/ lib/flecs/include lib/dijkstra/include lib/sockui lib/STC/include
 INCS        := $(INCS:%=$(ROOT_DIR)/%)
 
 SRC_DIR     := $(shell realpath src)
 SRCS        := ai.c component.c gui.c input.c item.c log.c main.c map.c \
 			   monster.c observer.c player.c religion.c render.c systems.c \
-			   socket_menu.c prefab.c arena.c
+			   socket_menu.c prefab.c arena.c ds.c
 SRCS        := $(SRCS:%=$(SRC_DIR)/%)
 
 BUILD_DIR   := $(shell realpath build)
@@ -45,9 +44,9 @@ OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS        := $(OBJS:.o=.d)
 
 CC          := gcc
-CFLAGS		:= -g3 $(shell pkg-config --cflags glib-2.0) -Wall -Wextra -Werror -std=gnu11 -D_GNU_SOURCE
+CFLAGS		:= -g3 -Wall -Wextra -Werror -std=gnu11 -D_GNU_SOURCE
 CFLAGS      += $(addprefix -I,$(INCS)) -MMD -MP
-LDFLAGS     := $(addprefix -L,$(dir $(LIBS_TARGET)))
+LDFLAGS     := $(addprefix -Llib/,$(LIBS_TARGET))
 LDFLAGS     += -fsanitize=undefined -fno-sanitize-recover
 LDLIBS      := $(addprefix -l,$(LIBS))
 
@@ -73,17 +72,17 @@ DIR_DUP     = mkdir -p $(@D)
 # fclean    remove .o + binary
 # re        remake default goal
 # run       run the program
-# info      print the default goal recipe
+# info-%    print commands for dryrun %
 
 all: $(NAME)
 
 $(NAME): $(OBJS) $(LIBS_TARGET)
-	$(CC) $(LDFLAGS) $(OBJS) $(LIBS_FORCED_OBJS) $(LDLIBS) -o $(NAME)
+	$(CC) $(LDFLAGS) $(OBJS) $(LIB_FORCED_OBJS) $(LDLIBS) -o $(NAME)
 	$(info CREATED $(NAME))
 
 $(LIBS_TARGET):
-	$(MAKE) -C $(@D)
-	$(info CREATED $@)
+	$(MAKE) -C lib/$@
+	$(info CREATED $@.a)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(DIR_DUP)
@@ -97,7 +96,7 @@ clean:
 	$(RM) $(NAME)
 
 fclean: clean
-	for f in $(dir $(LIBS_TARGET)); do $(MAKE) -C $$f clean; done
+	for f in $(LIBS_TARGET); do $(MAKE) -C lib/$$f clean; done
 
 re:
 	$(MAKE) fclean

@@ -3,9 +3,9 @@
 #include "map.h"
 #include "component.h"
 #include "prefab.h"
+#include "ds.h"
 
 #include "flecs.h"
-#include <glib.h>
 
 // TODO: Consider making this a prefab
 ecs_entity_t mjolnir;
@@ -44,14 +44,12 @@ ecs_entity_t get_typed_item_at_pos(ecs_world_t *world, Map *map, ecs_entity_t ty
 {
     if (!map_contains(map, x, y)) return 0;
 
-    GArray *items = map->items[y][x];
-    if (!items) return 0;
+    entity_vec *items = &map->items[y][x];
+    if (items->size == 0) return 0;
 
-    ecs_entity_t e;
-    for (guint i = 0; i < items->len; i++) {
-        e = g_array_index(items, ecs_entity_t, i);
-        if (ecs_has_pair(world, e, EcsIsA, type)) return e;
-    }
+    for (int i = 0; i < items->size; i++)
+        if (ecs_has_pair(world, items->data[i], EcsIsA, type))
+            return items->data[i];
 
     return 0;
 }
