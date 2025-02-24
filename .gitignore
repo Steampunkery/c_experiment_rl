@@ -5,4 +5,5 @@ roguelike
 .cache/
 lib/**/*.o
 lib/**/*.a
+lib/**/*.d
 compile_commands.json

@@ -25,11 +25,13 @@ NAME        := roguelike
 # LDLIBS      libraries name
 
 LIBS        := m uncursed glib-2.0 dijkstra rlsmenu flecs sockui
-LIBS_TARGET := lib/rlsmenu/librlsmenu.a lib/flecs/libflecs.a \
+LIBS_TARGET := lib/uncursed/libuncursed.a lib/rlsmenu/librlsmenu.a lib/flecs/libflecs.a \
 			   lib/DijkstraMap/libdijkstra.a lib/sockui/libsockui.a
+# These .o files will be forced into the final executable. This is required for uncursed to work
+LIBS_FORCED_OBJS := $(addprefix lib/uncursed/src/,plugins/tty.o plugins/wrap_tty.o)
 
 ROOT_DIR    := $(shell realpath .)
-INCS        := include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include lib/sockui
+INCS        := include lib/uncursed/include lib/rlsmenu/ lib/flecs/include lib/DijkstraMap/include lib/sockui
 INCS        := $(INCS:%=$(ROOT_DIR)/%)
 
 SRC_DIR     := $(shell realpath src)
@@ -76,7 +78,7 @@ DIR_DUP     = mkdir -p $(@D)
 all: $(NAME)
 
 $(NAME): $(OBJS) $(LIBS_TARGET)
-	$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(NAME)
+	$(CC) $(LDFLAGS) $(OBJS) $(LIBS_FORCED_OBJS) $(LDLIBS) -o $(NAME)
 	$(info CREATED $(NAME))
 
 $(LIBS_TARGET):
