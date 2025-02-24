@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include "input.h"
 #include "map.h"
 #include "monster.h"
 #include "religion.h"
@@ -40,7 +41,7 @@ bool process_player_input(ecs_world_t *world, KeyInfo key)
         // TODO?: Separate these cases out into callbacks
         switch (in) {
         case MovementInput:
-            Position *pos = &input_to_movement[key.key];
+            Position *pos = &direction9[key.key - '1'];
             int cost = get_cost_for_movement(pos->x, pos->y);
             MovementAction mov = { pos->x, pos->y, cost };
             ret = try_move_entity(world, g_player_id, &mov);

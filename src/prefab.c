@@ -49,7 +49,7 @@ void register_prefabs(ecs_world_t *world)
     ecs_set(world, Monster, Name, { L"PLACEHOLDER" });
     ecs_set(world, Monster, AIController, { do_nothing, NULL });
     ecs_set(world, Monster, InitiativeData, { 0, 10 });
-    ecs_set(world, Monster, Health, { 100 });
+    ecs_set(world, Monster, Health, { 100, 100 });
     ecs_set(world, Monster, Renderable, { true });
 
     ECS_PREFAB_DEFINE(world, Goblin, (IsA, Monster));
@@ -62,6 +62,6 @@ void register_prefabs(ecs_world_t *world)
 
     ECS_PREFAB_DEFINE(world, Dog, (IsA, Monster));
     ecs_set(world, Dog, Name, { L"Dog" });
-    ecs_set(world, Dog, Health, { 20 });
+    ecs_set(world, Dog, Health, { 20, 20 });
     ecs_set(world, Dog, Glyph, { L'd' });
 }

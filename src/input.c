@@ -5,9 +5,14 @@
 #include "rlsmenu.h"
 #include <uncursed/uncursed.h>
 
-Position input_to_movement[] = {
-    ['1'] = { -1, 1 }, ['2'] = { 0, 1 },   ['3'] = { 1, 1 },  ['4'] = { -1, 0 }, ['5'] = { 0, 0 },
-    ['6'] = { 1, 0 },  ['7'] = { -1, -1 }, ['8'] = { 0, -1 }, ['9'] = { 1, -1 },
+Position direction8[] = {
+    { -1, 1 }, { 0, 1 }, { 1, 1 }, { -1, 0 },
+    { 1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 },
+};
+
+Position direction9[] = {
+    { -1, 1 }, { 0, 1 }, { 1, 1 }, { -1, 0 },
+    { 0, 0 }, { 1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 },
 };
 
 InputType get_input_type(KeyInfo *key)

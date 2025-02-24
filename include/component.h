@@ -24,6 +24,7 @@ extern ECS_COMPONENT_DECLARE(MovementAction);
 extern ECS_COMPONENT_DECLARE(PickupAction);
 extern ECS_COMPONENT_DECLARE(DropAction);
 extern ECS_COMPONENT_DECLARE(QuaffAction);
+extern ECS_COMPONENT_DECLARE(AttackAction);
 extern ECS_COMPONENT_DECLARE(AIController);
 extern ECS_COMPONENT_DECLARE(Glyph);
 extern ECS_COMPONENT_DECLARE(Religious);
@@ -58,7 +59,12 @@ typedef struct Weight {
 
 typedef struct Stack {
     int val;
-} Stack, Health;
+} Stack;
+
+typedef struct Health {
+    int total;
+    int val;
+} Health;
 
 typedef struct MovementAction {
     int x, y;
@@ -74,6 +80,10 @@ typedef struct InvItemAction {
 typedef struct PrayerAction {
     char dummy;
 } PrayerAction;
+
+typedef struct AttackAction {
+    ecs_entity_t target;
+} AttackAction;
 
 typedef struct Inventory {
     MenuChangeCounter data_id;

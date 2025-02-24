@@ -4,7 +4,8 @@
 typedef unsigned int wint_t;
 typedef enum { MovementInput, WaitInput, PickupInput, PrayerInput, NotImplemented } InputType;
 
-extern Position input_to_movement[];
+extern Position direction8[];
+extern Position direction9[];
 
 typedef struct KeyInfo {
     int status;

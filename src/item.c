@@ -40,7 +40,7 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
     return e;
 }
 
-ecs_entity_t get_typed_item_at_pos(ecs_world_t *world, Map *map, ecs_entity_t type, int x, int y)
+ecs_entity_t get_typed_item_at_pos(ecs_world_t *world, Map const *map, ecs_entity_t type, int x, int y)
 {
     if (!map_contains(map, x, y)) return 0;
 

@@ -15,6 +15,7 @@ ECS_COMPONENT_DECLARE(MovementAction);
 ECS_COMPONENT_DECLARE(PickupAction);
 ECS_COMPONENT_DECLARE(DropAction);
 ECS_COMPONENT_DECLARE(QuaffAction);
+ECS_COMPONENT_DECLARE(AttackAction);
 ECS_COMPONENT_DECLARE(AIController);
 ECS_COMPONENT_DECLARE(Glyph);
 ECS_COMPONENT_DECLARE(MyTurn);
@@ -52,6 +53,7 @@ void register_components(ecs_world_t *world)
     ECS_COMPONENT_DEFINE(world, PickupAction);
     ECS_COMPONENT_DEFINE(world, DropAction);
     ECS_COMPONENT_DEFINE(world, QuaffAction);
+    ECS_COMPONENT_DEFINE(world, AttackAction);
     ECS_COMPONENT_DEFINE(world, AIController);
     ECS_COMPONENT_DEFINE(world, Glyph);
     ECS_COMPONENT_DEFINE(world, Religious);

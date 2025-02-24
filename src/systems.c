@@ -1,6 +1,7 @@
 #include "systems.h"
 
 #include "component.h"
+#include "input.h"
 #include "render.h"
 #include "log.h"
 #include "religion.h"
@@ -8,14 +9,26 @@
 
 #include "flecs.h"
 
+void Initiative(ecs_iter_t *it);
+void AI(ecs_iter_t *it);
+void Move(ecs_iter_t *it);
+void Pickup(ecs_iter_t *it);
+void Drop(ecs_iter_t *it);
+void Quaff(ecs_iter_t *it);
+void Attack(ecs_iter_t *it);
+void Prayer(ecs_iter_t *it);
+void ApplyPoison(ecs_iter_t *it);
+void StatusEffectTimer(ecs_iter_t *it);
+
 ecs_entity_t render;
 ecs_entity_t initiative;
 
+ECS_SYSTEM_DECLARE(AI);
 ECS_SYSTEM_DECLARE(Move);
 ECS_SYSTEM_DECLARE(Pickup);
 ECS_SYSTEM_DECLARE(Drop);
 ECS_SYSTEM_DECLARE(Quaff);
-ECS_SYSTEM_DECLARE(AI);
+ECS_SYSTEM_DECLARE(Attack);
 ECS_SYSTEM_DECLARE(Prayer);
 ECS_SYSTEM_DECLARE(ApplyPoison);
 ECS_SYSTEM_DECLARE(StatusEffectTimer);
@@ -27,6 +40,7 @@ void register_systems(ecs_world_t *world)
     ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, (HasAction, PickupAction), Position, InitiativeData, MyTurn);
     ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, (HasAction, DropAction), Position, InitiativeData, MyTurn);
     ECS_SYSTEM_DEFINE(world, Quaff, EcsOnUpdate, Inventory, (HasAction, QuaffAction), InitiativeData, MyTurn);
+    ECS_SYSTEM_DEFINE(world, Attack, EcsOnUpdate, (HasAction, AttackAction), Position, InitiativeData, MyTurn);
     ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, (HasAction, PrayerAction), InitiativeData, MyTurn);
 
     ECS_SYSTEM_DEFINE(world, ApplyPoison, EcsOnUpdate, (Targets, $t), Health($t), Poison, MyTurn);
@@ -76,6 +90,15 @@ void Initiative(ecs_iter_t *it)
     }
 }
 
+void AI(ecs_iter_t *it)
+{
+    AIController *aic = ecs_field(it, AIController, 0);
+
+    for (int i = 0; i < it->count; i++) {
+        aic[i].ai_func(it->world, it->entities[i], aic[i].state);
+    }
+}
+
 void Move(ecs_iter_t *it)
 {
     Position *pos = ecs_field(it, Position, 0);
@@ -86,15 +109,6 @@ void Move(ecs_iter_t *it)
         pos[i].x += mov[i].x;
         pos[i].y += mov[i].y;
         init[i].points -= mov[i].cost;
-    }
-}
-
-void AI(ecs_iter_t *it)
-{
-    AIController *aic = ecs_field(it, AIController, 0);
-
-    for (int i = 0; i < it->count; i++) {
-        aic[i].ai_func(it->world, it->entities[i], aic[i].state);
     }
 }
 
@@ -173,6 +187,31 @@ void Quaff(ecs_iter_t *it)
         ecs_delete(it->world, e);
 
         init[i].points -= 50;
+    }
+
+}
+
+void Attack(ecs_iter_t *it)
+{
+    AttackAction *aa = ecs_field(it, AttackAction, 0);
+    Position *pos = ecs_field(it, Position, 1);
+    InitiativeData *init = ecs_field(it, InitiativeData, 2);
+
+    for (int i = 0; i < it->count; i++) {
+        Position const *target_pos = ecs_get(it->world, aa[i].target, Position);
+        Health *target_health = ecs_get_mut(it->world, aa[i].target, Health);
+
+        int j;
+        for (j = 0; j < 8; j++) {
+            if (target_pos->x == (pos->x + direction8[j].x) && target_pos->y == (pos->y + direction8[j].y))
+                break;
+        }
+
+        if (j < 8)
+            // TODO: Calculate damage based on weapon, strength, defence, etc
+            target_health->val -= 20;
+
+        init[i].points -= 100;
     }
 
 }

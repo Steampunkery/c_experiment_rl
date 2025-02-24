@@ -135,6 +135,7 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(Drop), 0.0, NULL);
             ecs_run(world, ecs_id(Prayer), 0.0, NULL);
             ecs_run(world, ecs_id(Quaff), 0.0, NULL);
+            ecs_run(world, ecs_id(Attack), 0.0, NULL);
 
             ecs_run(world, ecs_id(ApplyPoison), 0.0, NULL);
             ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
@@ -247,10 +248,14 @@ void temp_map_init(ecs_world_t *world, Map *map)
     ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 23 }),
             ecs_value(AIController, { left_walker, NULL }));
     ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 22 }),
-            ecs_value(AIController, { greedy_ai, map }), { Invisible, NULL });
+            ecs_value(AIController, { greedy_ai, NULL }), { Invisible, NULL });
+    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 40 }),
+            ecs_value(AIController, { enemy_ai, &(EnemyAIParams) {
+                .health_flee_p = 0.5
+            }}));
 
     ecs_insert(world, { ecs_isa(Dog), NULL }, ecs_value(Position, { 10, 20 }),
-            ecs_value(AIController, { pet_ai, map }));
+            ecs_value(AIController, { pet_ai, NULL }));
 
     ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold1, 1, 1);
