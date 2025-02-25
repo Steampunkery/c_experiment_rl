@@ -12,6 +12,7 @@ typedef struct KeyInfo {
     wint_t key;
 } KeyInfo;
 
+CommandType get_command(KeyInfo *key, int msec_timeout);
 InputType get_input_type(KeyInfo *key);
 enum rlsmenu_input translate_key(KeyInfo *key);
 int translate_sockui(int c, sockui_t *sui);

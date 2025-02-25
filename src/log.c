@@ -15,7 +15,7 @@ Logger *init_logger(Logger *l)
 }
 
 // TODO: This function truncates long messages...
-void log_msg(Logger *l, wchar_t *fmt, ...)
+void log_msg(Logger *l, wchar_t const *fmt, ...)
 {
     static wchar_t msgbuf[MAX_LOG_MSG_LEN];
 
@@ -30,7 +30,7 @@ void log_msg(Logger *l, wchar_t *fmt, ...)
     l->head = (l->head + 1) & (MAX_LOG_MSGS - 1);
 }
 
-void _log_msg(Logger *l, char *fmt, ...)
+void _log_msg(Logger *l, char const *fmt, ...)
 {
     static char msgbuf[MAX_LOG_MSG_LEN];
 

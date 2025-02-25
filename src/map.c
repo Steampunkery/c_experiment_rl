@@ -33,21 +33,21 @@ Map *new_map(Map *map, int rows, int cols)
             map->grid[i][0] = map->grid[i][cols - 1] = Wall;
 
     entity_vec init = { 0 };
-    map->items = (entity_vec **) new_grid(rows, cols, sizeof(**map->items), &init);
+    map->entities = (entity_vec **) new_grid(rows, cols, sizeof(**map->entities), &init);
 
     map->dijkstra_sources = malloc(sizeof(*map->dijkstra_sources) * rows * cols);
     map->dijkstra_maps[DM_ORDER_GOLD] = (DMWrapper) {
         .dm = { 0 },
         .type = DM_TYPE_PREFAB,
         .subtype = GoldItem,
-        .dirty = false,
+        .dirty = true,
     };
 
     map->dijkstra_maps[DM_ORDER_PLAYER] = (DMWrapper) {
         .dm = { 0 },
         .type = DM_TYPE_PREFAB,
         .subtype = Player,
-        .dirty = false,
+        .dirty = true,
     };
 
     // TODO: Make a heuristic for arena size
@@ -72,9 +72,9 @@ void destroy_map(Map *map)
 
     for (int i = 0; i < map->rows; i++)
         for (int j = 0; j < map->cols; j++)
-            entity_vec_clear(&map->items[i][j]);
+            entity_vec_clear(&map->entities[i][j]);
 
-    destroy_grid(map->items);
+    destroy_grid(map->entities);
     destroy_grid(map->grid);
 
     free(map->dijkstra_sources);
@@ -144,32 +144,26 @@ bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off)
 }
 
 // Assumes in-bounds
-void map_place_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
+void map_place_entity(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
 {
-    entity_vec_push(&map->items[y][x], e);
+    entity_vec_push(&map->entities[y][x], e);
     mark_prefab_dms_dirty(world, map, e);
 }
 
-ecs_entity_t map_pickup_item(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
+void map_remove_entity(ecs_world_t *world, Map *map, ecs_entity_t e, int x, int y)
 {
-    entity_vec *items = &map->items[y][x];
-    if (items->size == 0) return 0;
+    entity_vec *entities = &map->entities[y][x];
+    assert(e != 0);
 
-    int i = 0;
-    ecs_entity_t item;
-    if (e == 0) {
-        item = items->data[0];
-    } else {
-        for (; i < items->size; i++) {
-            if (items->data[i] == e) break;
-        }
-        if (i == items->size) return 0;
-        item = items->data[i];
-    }
+    int i;
+    for (i = 0; i < entities->size; i++)
+        if (entities->data[i] == e)
+            break;
 
-    entity_vec_erase_n(items, i, 1);
-    mark_prefab_dms_dirty(world, map, item);
-    return item;
+    assert(i != entities->size);
+
+    entity_vec_erase_n(entities, i, 1);
+    mark_prefab_dms_dirty(world, map, e);
 }
 
 void dijkstra_init(ecs_world_t *world)
@@ -186,7 +180,6 @@ void dijkstra_init(ecs_world_t *world)
 }
 
 /*
- * TODO: Find a way to not call this every frame
  * TODO: Consider separating dijkstra maps by type (mob, item, etc) then
  * having a system to handle each type of map. Using filters in a switch
  * this way feels like a hack.

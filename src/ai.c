@@ -1,6 +1,7 @@
 #include "ai.h"
 
 #include "input.h"
+#include "log.h"
 #include "monster.h"
 #include "map.h"
 #include "item.h"
@@ -34,7 +35,7 @@ void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *)
         MovementAction ma = dm_flow_downhill(dm, map, pos);
         try_move_entity(world, e, &ma);
     } else {
-        ecs_entity_t gold = get_typed_item_at_pos(world, map, GoldItem, pos->x, pos->y);
+        ecs_entity_t gold = first_prefab_at_pos(world, map, GoldItem, pos->x, pos->y, &(int){0});
         if (gold)
             ecs_set_pair_second(world, e, HasAction, PickupAction, { gold });
     }
@@ -70,7 +71,7 @@ void enemy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
 
     bool did_action = false;
     MovementAction ma;
-    if (health->val/(float) health->total < params->health_flee_p) {
+    if ((float) health->val/health->total < params->health_flee_p) {
         ma = dm_flow_uphill(dm, map, pos);
         did_action = try_move_entity(world, e, &ma);
     } else if (dm->map[XY_TO_IDX(pos->x, pos->y, map->cols)] > 1.5) {

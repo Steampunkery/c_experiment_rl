@@ -1,3 +1,4 @@
+#include "component.h"
 #include "rogue.h"
 
 #include "observer.h"
@@ -112,18 +113,7 @@ int main(int argc, char **argv)
                     vars.state = RunSystems;
                     break;
                 }
-
-                CommandType cmd = get_command(&key, 7);
-                if (cmd == GUICommand || cmd == PlayerGUICommand) {
-                    vars.state = NewGUIFrame;
-                    break;
-                } else if (cmd == QuitCommand) {
-                    goto done;
-                }
-
-                vars.state = RunSystems;
-                // process_player_input returns whether the players turn is done
-            } while (!process_player_input(world, key));
+            } while ((vars.state = process_player_input(world, &key)) == PlayerTurn);
 
             break;
         case RunSystems:
@@ -140,20 +130,23 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(ApplyPoison), 0.0, NULL);
             ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
 
+            // Mark the map dirty *after* the player has moved
+            if (ecs_has_pair(world, g_player_id, HasAction, ecs_id(MovementAction)))
+                ecs_singleton_get_mut(world, Map)->dijkstra_maps[DM_ORDER_PLAYER].dirty = true;
+
             vars.state = PreTurn;
             break;
         case NewGUIFrame:
-            int idx = alpha_to_idx(key.key);
-            assert(idx >= 0);
+            FrameData *data = gui_state_for(key.key);
+            if (data->data_id_type == DATA_ID_PLAYER_TARGET)
+                data->data_id_arg.pl = g_player_id;
 
-            if (gui_state[idx].data_id_type == DATA_ID_PLAYER_TARGET)
-                gui_state[idx].data_id_arg.pl = g_player_id;
-
-            if (!gui_state[idx].prep_frame(&gui_state[idx], world, frame_arena)) {
+            if (!data->prep_frame(data, world, frame_arena)) {
                 vars.state = PlayerTurn;
                 break;
             }
-            rlsmenu_gui_push(&gui, gui_state[idx].frame);
+
+            rlsmenu_gui_push(&gui, data->frame);
             render_and_sock_menus(&vars);
 
             vars.state = GUI;
@@ -176,9 +169,11 @@ int main(int argc, char **argv)
             case RLSMENU_CANCELED:
                 vars.state = PlayerTurn;
                 break;
-            case RLSMENU_CONT:;
+            case RLSMENU_CONT:
             }
             break;
+        case Quit:
+            goto done;
         }
     }
 
@@ -195,67 +190,35 @@ uncursed_done:
     return 0;
 }
 
-// TODO: Enumerating menus like this is SHIT
-CommandType get_command(KeyInfo *key, int msec_timeout)
-{
-    wint_t c = 0;
-    int ret = timeout_get_wch(msec_timeout, &c);
-
-    key->status = ret;
-    key->key = c;
-
-    if (c == KEY_HANGUP)
-        assert(!"KEY_HANGUP Received! Very bad!");
-
-    switch (ret) {
-        case OK:
-        case KEY_CODE_YES:
-            if (c == KEY_ESCAPE)
-                return QuitCommand;
-            else if (c == KEY_INVALID)
-                return InvalidCommand;
-
-            switch (c) {
-                case 'd':
-                    return PlayerGUICommand;
-                case 'q':
-                    return PlayerGUICommand;
-                case 'i':
-                    return GUICommand;
-                case 'm':
-                    return GUICommand;
-                case 'D':
-                    return GUICommand;
-                case 'G':
-                    return GUICommand;
-                default:
-                    return HeroCommand;
-            }
-        case ERR:
-            return InvalidCommand;
-    }
-
-    return InvalidCommand;
-}
-
 void temp_map_init(ecs_world_t *world, Map *map)
 {
     g_player_id = init_player(world);
 
-    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 20 }));
-    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 21 }),
-            ecs_value(AIController, { left_walker, NULL }));
-    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 23 }),
-            ecs_value(AIController, { left_walker, NULL }));
-    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 22 }),
-            ecs_value(AIController, { greedy_ai, NULL }), { Invisible, NULL });
-    ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 40 }),
-            ecs_value(AIController, { enemy_ai, &(EnemyAIParams) {
-                .health_flee_p = 0.5
-            }}));
+    ecs_entity_t e;
+    e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 20 }));
+    map_place_entity(world, map, e, 40, 20);
 
-    ecs_insert(world, { ecs_isa(Dog), NULL }, ecs_value(Position, { 10, 20 }),
+    e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 21 }),
+            ecs_value(AIController, { left_walker, NULL }));
+    map_place_entity(world, map, e, 40, 21);
+
+    e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 23 }),
+            ecs_value(AIController, { left_walker, NULL }));
+    map_place_entity(world, map, e, 40, 23);
+
+    e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 22 }),
+            ecs_value(AIController, { greedy_ai, NULL }), { Invisible, NULL });
+    map_place_entity(world, map, e, 40, 22);
+
+    // Big hack to get around lifetime rules and allocation
+    static EnemyAIParams melee_flee = { .health_flee_p = 0.5 };
+    e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 40 }),
+            ecs_value(AIController, { enemy_ai, &melee_flee}));
+    map_place_entity(world, map, e, 40, 40);
+
+    e = ecs_insert(world, { ecs_isa(Dog), NULL }, ecs_value(Position, { 10, 20 }),
             ecs_value(AIController, { pet_ai, NULL }));
+    map_place_entity(world, map, e, 10, 20);
 
     ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold1, 1, 1);

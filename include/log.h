@@ -16,8 +16,8 @@ typedef struct Logger {
 } Logger;
 
 Logger *init_logger(Logger *l);
-void log_msg(Logger *l, wchar_t *fmt, ...);
-void _log_msg(Logger *l, char *fmt, ...);
+void log_msg(Logger *l, wchar_t const *fmt, ...);
+void _log_msg(Logger *l, char const *fmt, ...);
 const wchar_t *get_last_log_msg(Logger *l);
 bool log_has_pending(const Logger *l);
 

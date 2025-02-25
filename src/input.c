@@ -15,13 +15,56 @@ Position direction9[] = {
     { 0, 0 }, { 1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 },
 };
 
+// TODO: Enumerating menus like this is SHIT
+CommandType get_command(KeyInfo *key, int msec_timeout)
+{
+    wint_t c = 0;
+    int ret = timeout_get_wch(msec_timeout, &c);
+
+    key->status = ret;
+    key->key = c;
+
+    if (c == KEY_HANGUP)
+        assert(!"KEY_HANGUP Received! Very bad!");
+
+    switch (ret) {
+        case OK:
+        case KEY_CODE_YES:
+            if (c == KEY_ESCAPE)
+                return QuitCommand;
+            else if (c == KEY_INVALID)
+                return InvalidCommand;
+
+            switch (c) {
+                case 'd':
+                    return PlayerGUICommand;
+                case 'q':
+                    return PlayerGUICommand;
+                case 'i':
+                    return GUICommand;
+                case 'm':
+                    return GUICommand;
+                case 'D':
+                    return GUICommand;
+                case 'G':
+                    return GUICommand;
+                default:
+                    return HeroCommand;
+            }
+        case ERR:
+            return InvalidCommand;
+    }
+
+    return InvalidCommand;
+}
+
 InputType get_input_type(KeyInfo *key)
 {
     switch (key->status) {
     case OK:
-        if (key->key != '5' && (key->key > 48 && key->key < 58))
+        if (key->key > 48 && key->key < 58)
             return MovementInput;
-        else if (key->key == '.' || key->key == '5')
+        else if (key->key == '.')
             return WaitInput;
         else if (key->key == ',')
             return PickupInput;

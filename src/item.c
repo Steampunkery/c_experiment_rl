@@ -20,7 +20,7 @@ ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
     Map *map = ecs_singleton_get_mut(world, Map);
     if (!map_contains(map, x, y)) return 0;
 
-    map_place_item(world, map, e, x, y);
+    map_place_entity(world, map, e, x, y);
     ecs_set(world, e, Position, { x, y });
 
     return e;
@@ -33,23 +33,26 @@ ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
     Map *map = ecs_singleton_get_mut(world, Map);
     if (!map_contains(map, x, y)) return 0;
 
-    e = map_pickup_item(world, map, e, x, y);
-    if (!e) return 0;
+    map_remove_entity(world, map, e, x, y);
     ecs_remove(world, e, Position);
 
     return e;
 }
 
-ecs_entity_t get_typed_item_at_pos(ecs_world_t *world, Map const *map, ecs_entity_t type, int x, int y)
+ecs_entity_t first_prefab_at_pos(ecs_world_t *world, Map const *map, ecs_entity_t type, int x, int y, int *n)
 {
     if (!map_contains(map, x, y)) return 0;
 
-    entity_vec *items = &map->items[y][x];
-    if (items->size == 0) return 0;
+    entity_vec *entities = &map->entities[y][x];
+    if (entities->size == 0) return 0;
 
-    for (int i = 0; i < items->size; i++)
-        if (ecs_has_pair(world, items->data[i], EcsIsA, type))
-            return items->data[i];
+    *n = 0;
+    ecs_entity_t first = 0;
+    for (int i = 0; i < entities->size; i++)
+        if (ecs_has_pair(world, entities->data[i], EcsIsA, type)) {
+            *n += 1;
+            first = entities->data[i];
+        }
 
-    return 0;
+    return first;
 }

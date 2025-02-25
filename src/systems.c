@@ -2,6 +2,7 @@
 
 #include "component.h"
 #include "input.h"
+#include "map.h"
 #include "render.h"
 #include "log.h"
 #include "religion.h"
@@ -104,10 +105,13 @@ void Move(ecs_iter_t *it)
     Position *pos = ecs_field(it, Position, 0);
     MovementAction *mov = ecs_field(it, MovementAction, 1);
     InitiativeData *init = ecs_field(it, InitiativeData, 2);
+    Map *map = ecs_singleton_get_mut(it->world, Map);
 
     for (int i = 0; i < it->count; i++) {
+        map_remove_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
         pos[i].x += mov[i].x;
         pos[i].y += mov[i].y;
+        map_place_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
         init[i].points -= mov[i].cost;
     }
 }
@@ -202,12 +206,12 @@ void Attack(ecs_iter_t *it)
         Health *target_health = ecs_get_mut(it->world, aa[i].target, Health);
 
         int j;
-        for (j = 0; j < 8; j++) {
-            if (target_pos->x == (pos->x + direction8[j].x) && target_pos->y == (pos->y + direction8[j].y))
+        for (j = 0; j < 9; j++) {
+            if (target_pos->x == (pos->x + direction9[j].x) && target_pos->y == (pos->y + direction9[j].y))
                 break;
         }
 
-        if (j < 8)
+        if (j != 9)
             // TODO: Calculate damage based on weapon, strength, defence, etc
             target_health->val -= 20;
 

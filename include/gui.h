@@ -20,7 +20,7 @@ struct FrameData {
     bool (*prep_frame)(FrameData *, ecs_world_t *, arena);
     void *ctx;
     arena a;
-    wchar_t *title;
+    wchar_t const *title;
 
     uint32_t (*get_data_id)(FrameData *);
 
@@ -32,6 +32,7 @@ struct FrameData {
     data_id_t data_id_type;
 };
 
-extern FrameData gui_state[52];
+extern FrameData *gui_state[7];
 
+FrameData *gui_state_for(char c);
 void gui_init();

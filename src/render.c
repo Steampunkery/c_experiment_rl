@@ -42,7 +42,8 @@ void Render(ecs_iter_t *it)
         }
 
         Health const *health = ecs_get(it->world, g_player_id, Health);
-        mvwprintw(vars->statuswin, 0, 0, "Health: %3d", health->val);
+        Position const *pos = ecs_get(it->world, g_player_id, Position);
+        mvwprintw(vars->statuswin, 0, 0, "Health: %3d\tPos: (%3d, %3d)", health->val, pos->x, pos->y);
         wnoutrefresh(vars->statuswin);
 
         break;
