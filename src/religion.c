@@ -71,5 +71,5 @@ void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e)
 
 void bestow_item(ecs_world_t *world, ItemBoon *boon, const Position *pos)
 {
-    place_item(world, ecs_clone(world, 0, *boon->item, true), pos->x, pos->y);
+    place_item(world, *boon->item, pos->x, pos->y);
 }
