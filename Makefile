@@ -25,7 +25,8 @@ NAME        := roguelike
 # LDLIBS      libraries name
 
 LIBS        := m uncursed dijkstra rlsmenu flecs sockui
-LIBS_TARGET := uncursed dijkstra rlsmenu flecs sockui
+LIBS_TARGET := lib/uncursed/libuncursed.a lib/dijkstra/libdijkstra.a \
+			   lib/rlsmenu/librlsmenu.a lib/flecs/libflecs.a lib/sockui/libsockui.a
 # These .o files will be forced into the final executable. This is required for uncursed to work
 LIB_FORCED_OBJS := $(addprefix lib/uncursed/src/,plugins/tty.o plugins/wrap_tty.o)
 
@@ -46,7 +47,7 @@ DEPS        := $(OBJS:.o=.d)
 CC          := gcc
 CFLAGS		:= -g3 -Wall -Wextra -Werror -std=gnu11 -D_GNU_SOURCE
 CFLAGS      += $(addprefix -I,$(INCS)) -MMD -MP
-LDFLAGS     := $(addprefix -Llib/,$(LIBS_TARGET))
+LDFLAGS     := $(addprefix -L,$(dir $(LIBS_TARGET)))
 LDFLAGS     += -fsanitize=undefined -fno-sanitize-recover
 LDLIBS      := $(addprefix -l,$(LIBS))
 
@@ -81,8 +82,8 @@ $(NAME): $(OBJS) $(LIBS_TARGET)
 	$(info CREATED $(NAME))
 
 $(LIBS_TARGET):
-	$(MAKE) -C lib/$@
-	$(info CREATED $@.a)
+	$(MAKE) -C $(@D)
+	$(info CREATED $@)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(DIR_DUP)
@@ -96,7 +97,7 @@ clean:
 	$(RM) $(NAME)
 
 fclean: clean
-	for f in $(LIBS_TARGET); do $(MAKE) -C lib/$$f clean; done
+	for f in $(dir $(LIBS_TARGET)); do $(MAKE) -C $$f clean; done
 
 re:
 	$(MAKE) fclean
@@ -105,10 +106,21 @@ re:
 info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
+
+uncursed: lib/uncursed/libuncursed.a
+
+dijkstra: lib/dijkstra/libdijkstra.a
+
+rlsmenu: lib/rlsmenu/librlsmenu.a
+
+flecs: lib/flecs/libflecs.a
+
+sockui: lib/sockui/libsockui.a
+
 #------------------------------------------------#
 #   SPEC                                         #
 #------------------------------------------------#
 
-.PHONY: clean fclean re
+.PHONY: clean fclean re uncursed dijkstra rlsmenu flecs sockui
 .SILENT:
 
