@@ -10,42 +10,24 @@
 
 #include "flecs.h"
 
+#define SYSTEM(s, ...) void s(ecs_iter_t *it);
+SYSTEMS
+#undef SYSTEM
+
+#define SYSTEM(s, ...) ECS_SYSTEM_DECLARE(s);
+SYSTEMS
+#undef SYSTEM
+
 void Initiative(ecs_iter_t *it);
-void AI(ecs_iter_t *it);
-void Move(ecs_iter_t *it);
-void Pickup(ecs_iter_t *it);
-void Drop(ecs_iter_t *it);
-void Quaff(ecs_iter_t *it);
-void Attack(ecs_iter_t *it);
-void Prayer(ecs_iter_t *it);
-void ApplyPoison(ecs_iter_t *it);
-void StatusEffectTimer(ecs_iter_t *it);
 
 ecs_entity_t render;
 ecs_entity_t initiative;
 
-ECS_SYSTEM_DECLARE(AI);
-ECS_SYSTEM_DECLARE(Move);
-ECS_SYSTEM_DECLARE(Pickup);
-ECS_SYSTEM_DECLARE(Drop);
-ECS_SYSTEM_DECLARE(Quaff);
-ECS_SYSTEM_DECLARE(Attack);
-ECS_SYSTEM_DECLARE(Prayer);
-ECS_SYSTEM_DECLARE(ApplyPoison);
-ECS_SYSTEM_DECLARE(StatusEffectTimer);
-
 void register_systems(ecs_world_t *world)
 {
-    ECS_SYSTEM_DEFINE(world, AI, EcsOnUpdate, AIController, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Move, EcsOnUpdate, Position, (HasAction, MovementAction), InitiativeData, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Pickup, EcsOnUpdate, Inventory, (HasAction, PickupAction), Position, InitiativeData, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Drop, EcsOnUpdate, Inventory, (HasAction, DropAction), Position, InitiativeData, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Quaff, EcsOnUpdate, Inventory, (HasAction, QuaffAction), InitiativeData, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Attack, EcsOnUpdate, (HasAction, AttackAction), Position, InitiativeData, MyTurn);
-    ECS_SYSTEM_DEFINE(world, Prayer, EcsOnUpdate, (HasAction, PrayerAction), InitiativeData, MyTurn);
-
-    ECS_SYSTEM_DEFINE(world, ApplyPoison, EcsOnUpdate, (Targets, $t), Health($t), Poison, MyTurn);
-    ECS_SYSTEM_DEFINE(world, StatusEffectTimer, EcsOnUpdate, TimedStatusEffect, InitiativeData, MyTurn);
+#define SYSTEM(s, ...) ECS_SYSTEM_DEFINE(world, s, __VA_ARGS__);
+    SYSTEMS
+#undef SYSTEM
 
     render = ecs_system(world, {
         .query.terms = {

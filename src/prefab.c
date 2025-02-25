@@ -5,62 +5,50 @@
 
 #include "flecs.h"
 
-ECS_PREFAB_DECLARE(Item);
-ECS_PREFAB_DECLARE(GoldItem);
-ECS_PREFAB_DECLARE(FoodItem);
-ECS_PREFAB_DECLARE(WeaponItem);
-ECS_PREFAB_DECLARE(QuaffableItem);
-
-ECS_PREFAB_DECLARE(Monster);
-ECS_PREFAB_DECLARE(Goblin);
-ECS_PREFAB_DECLARE(Player);
-ECS_PREFAB_DECLARE(Dog);
+#define PREFAB(p, ...) ECS_PREFAB_DECLARE(p);
+PREFABS
+#undef PREFAB
 
 void register_prefabs(ecs_world_t *world)
 {
+#define PREFAB(p, ...) ECS_PREFAB_DEFINE(world, p, __VA_ARGS__);
+PREFABS
+#undef PREFAB
+
     /* Items */
-    ECS_PREFAB_DEFINE(world, Item);
     ecs_set(world, Item, Name, { L"PLACEHOLDER" });
     ecs_set(world, Item, Weight, { 1 });
     ecs_set(world, Item, Value, { 1 });
     ecs_set(world, Item, Renderable, { true });
 
-    ECS_PREFAB_DEFINE(world, GoldItem, (IsA, Item));
     ecs_set(world, GoldItem, Name, { L"Gold" });
     ecs_set(world, GoldItem, Weight, { 0.1 });
     ecs_set(world, GoldItem, Stack, { 1 });
     ecs_set(world, GoldItem, Glyph, { L'$' });
 
-    ECS_PREFAB_DEFINE(world, FoodItem, (IsA, Item));
     ecs_set(world, FoodItem, Weight, { 0.5 });
     ecs_set(world, FoodItem, Stack, { 1 });
     ecs_set(world, FoodItem, Satiation, { 10 });
     ecs_set(world, FoodItem, Glyph, { L'%' });
 
-    ECS_PREFAB_DEFINE(world, WeaponItem, (IsA, Item));
     ecs_set(world, WeaponItem, Weight, { 5 });
     ecs_set(world, WeaponItem, Glyph, { L'/' });
 
-    ECS_PREFAB_DEFINE(world, QuaffableItem, (IsA, Item));
     ecs_set(world, QuaffableItem, Glyph, { L'!' });
 
     /* Monsters */
-    ECS_PREFAB_DEFINE(world, Monster);
     ecs_set(world, Monster, Name, { L"PLACEHOLDER" });
     ecs_set(world, Monster, AIController, { do_nothing, NULL });
     ecs_set(world, Monster, InitiativeData, { 0, 10 });
     ecs_set(world, Monster, Health, { 100, 100 });
     ecs_set(world, Monster, Renderable, { true });
 
-    ECS_PREFAB_DEFINE(world, Goblin, (IsA, Monster));
     ecs_set(world, Goblin, Name, { L"Goblin" });
     ecs_set(world, Goblin, Inventory, INV_NEW(10));
     ecs_set(world, Goblin, Glyph, { L'g' });
 
-    ECS_PREFAB_DEFINE(world, Player, (IsA, Monster));
     ecs_set(world, Player, Name, { L"Player" });
 
-    ECS_PREFAB_DEFINE(world, Dog, (IsA, Monster));
     ecs_set(world, Dog, Name, { L"Dog" });
     ecs_set(world, Dog, Health, { 20, 20 });
     ecs_set(world, Dog, Glyph, { L'd' });

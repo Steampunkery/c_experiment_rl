@@ -12,38 +12,48 @@ typedef int wchar_t;
 typedef struct Religion Religion;
 typedef struct FrameData FrameData;
 
-extern ECS_COMPONENT_DECLARE(Name);
-extern ECS_COMPONENT_DECLARE(Position);
-extern ECS_COMPONENT_DECLARE(Weight);
-extern ECS_COMPONENT_DECLARE(Value);
-extern ECS_COMPONENT_DECLARE(Satiation);
-extern ECS_COMPONENT_DECLARE(Stack);
-extern ECS_COMPONENT_DECLARE(Health);
-extern ECS_COMPONENT_DECLARE(Inventory);
-extern ECS_COMPONENT_DECLARE(MovementAction);
-extern ECS_COMPONENT_DECLARE(PickupAction);
-extern ECS_COMPONENT_DECLARE(DropAction);
-extern ECS_COMPONENT_DECLARE(QuaffAction);
-extern ECS_COMPONENT_DECLARE(AttackAction);
-extern ECS_COMPONENT_DECLARE(AIController);
-extern ECS_COMPONENT_DECLARE(Glyph);
-extern ECS_COMPONENT_DECLARE(Religious);
-extern ECS_COMPONENT_DECLARE(PrayerAction);
-extern ECS_COMPONENT_DECLARE(SeeInvisible);
-extern ECS_COMPONENT_DECLARE(Renderable);
-extern ECS_COMPONENT_DECLARE(Map);
-extern ECS_COMPONENT_DECLARE(InitiativeData);
-extern ECS_COMPONENT_DECLARE(MenuNetWrapper);
-extern ECS_COMPONENT_DECLARE(TimedStatusEffect);
+#define COMPONENTS            \
+    COMPONENT(Name)           \
+    COMPONENT(Position)       \
+    COMPONENT(Weight)         \
+    COMPONENT(Value)          \
+    COMPONENT(Satiation)      \
+    COMPONENT(Stack)          \
+    COMPONENT(Health)         \
+    COMPONENT(Inventory)      \
+    COMPONENT(MovementAction) \
+    COMPONENT(PickupAction)   \
+    COMPONENT(DropAction)     \
+    COMPONENT(QuaffAction)    \
+    COMPONENT(AttackAction)   \
+    COMPONENT(AIController)   \
+    COMPONENT(Glyph)          \
+    COMPONENT(Religious)      \
+    COMPONENT(PrayerAction)   \
+    COMPONENT(SeeInvisible)   \
+    COMPONENT(Renderable)     \
+    COMPONENT(Map)            \
+    COMPONENT(InitiativeData) \
+    COMPONENT(MenuNetWrapper) \
+    COMPONENT(TimedStatusEffect)
 
-extern ECS_TAG_DECLARE(Invisible);
-extern ECS_TAG_DECLARE(MyTurn);
-extern ECS_TAG_DECLARE(Targets);
-extern ECS_TAG_DECLARE(HasQuaffEffect);
-extern ECS_TAG_DECLARE(InInventory);
-extern ECS_TAG_DECLARE(Poison);
-extern ECS_TAG_DECLARE(HasAction);
-extern ECS_TAG_DECLARE(ActionFromSocket);
+#define COMPONENT(c) extern ECS_COMPONENT_DECLARE(c);
+COMPONENTS
+#undef COMPONENT
+
+#define TAGS            \
+    TAG(Invisible)      \
+    TAG(MyTurn)         \
+    TAG(Targets)        \
+    TAG(HasQuaffEffect) \
+    TAG(InInventory)    \
+    TAG(Poison)         \
+    TAG(HasAction)      \
+    TAG(ActionFromSocket)
+
+#define TAG(t) extern ECS_TAG_DECLARE(t);
+TAGS
+#undef TAG
 
 typedef struct Name {
     wchar_t const *s;

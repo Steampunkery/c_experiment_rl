@@ -4,14 +4,21 @@
 void register_systems(ecs_world_t *);
 
 extern ecs_entity_t render;
-extern ecs_entity_t initiative;;
+extern ecs_entity_t initiative;
 
-extern ECS_SYSTEM_DECLARE(AI);
-extern ECS_SYSTEM_DECLARE(Move);
-extern ECS_SYSTEM_DECLARE(Pickup);
-extern ECS_SYSTEM_DECLARE(Drop);
-extern ECS_SYSTEM_DECLARE(Quaff);
-extern ECS_SYSTEM_DECLARE(Attack);
-extern ECS_SYSTEM_DECLARE(Prayer);
-extern ECS_SYSTEM_DECLARE(ApplyPoison);
-extern ECS_SYSTEM_DECLARE(StatusEffectTimer);
+#define SYSTEMS                                                                                 \
+    SYSTEM(AI, EcsOnUpdate, AIController, MyTurn)                                               \
+    SYSTEM(Move, EcsOnUpdate, Position, (HasAction, MovementAction), InitiativeData, MyTurn)    \
+    SYSTEM(Pickup, EcsOnUpdate, Inventory, (HasAction, PickupAction), Position, InitiativeData, \
+           MyTurn)                                                                              \
+    SYSTEM(Drop, EcsOnUpdate, Inventory, (HasAction, DropAction), Position, InitiativeData,     \
+           MyTurn)                                                                              \
+    SYSTEM(Quaff, EcsOnUpdate, Inventory, (HasAction, QuaffAction), InitiativeData, MyTurn)     \
+    SYSTEM(Attack, EcsOnUpdate, (HasAction, AttackAction), Position, InitiativeData, MyTurn)    \
+    SYSTEM(Prayer, EcsOnUpdate, (HasAction, PrayerAction), InitiativeData, MyTurn)              \
+    SYSTEM(ApplyPoison, EcsOnUpdate, (Targets, $t), Health($t), Poison, MyTurn)                 \
+    SYSTEM(StatusEffectTimer, EcsOnUpdate, TimedStatusEffect, InitiativeData, MyTurn)
+
+#define SYSTEM(s, ...) extern ECS_SYSTEM_DECLARE(s);
+SYSTEMS
+#undef SYSTEM

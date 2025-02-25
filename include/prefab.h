@@ -1,15 +1,19 @@
 #pragma once
 #include "flecs.h"
 
-extern ECS_PREFAB_DECLARE(Item);
-extern ECS_PREFAB_DECLARE(GoldItem);
-extern ECS_PREFAB_DECLARE(FoodItem);
-extern ECS_PREFAB_DECLARE(WeaponItem);
-extern ECS_PREFAB_DECLARE(QuaffableItem);
+#define PREFABS                        \
+    PREFAB(Item)                       \
+    PREFAB(GoldItem, (IsA, Item))      \
+    PREFAB(FoodItem, (IsA, Item))      \
+    PREFAB(WeaponItem, (IsA, Item))    \
+    PREFAB(QuaffableItem, (IsA, Item)) \
+    PREFAB(Monster)                    \
+    PREFAB(Goblin, (IsA, Monster))     \
+    PREFAB(Player, (IsA, Monster))     \
+    PREFAB(Dog, (IsA, Monster))
 
-extern ECS_PREFAB_DECLARE(Monster);
-extern ECS_PREFAB_DECLARE(Goblin);
-extern ECS_PREFAB_DECLARE(Player);
-extern ECS_PREFAB_DECLARE(Dog);
+#define PREFAB(p, ...) extern ECS_PREFAB_DECLARE(p);
+PREFABS
+#undef PREFAB
 
 void register_prefabs(ecs_world_t *world);
