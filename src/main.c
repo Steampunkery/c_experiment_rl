@@ -96,11 +96,13 @@ int main(int argc, char **argv)
     // Put state variables here.
     // TODO!: Make these into a struct
     KeyInfo key = { 0 };
+    bool is_player_turn = false;
     while (true) {
         switch (vars.state) {
         case PreTurn:
             ecs_run(world, initiative, 0.0, NULL);
             vars.state = ecs_is_enabled(world, g_player_id, MyTurn) ? PlayerTurn : RunSystems;
+            is_player_turn = vars.state == PlayerTurn;
             break;
         case PlayerTurn:
             ecs_run(world, render, 0.0, &vars);
@@ -131,7 +133,10 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
 
             // Mark the map dirty *after* the player has moved
-            if (ecs_has_pair(world, g_player_id, HasAction, ecs_id(MovementAction)))
+            MovementAction const *ma;
+            if (is_player_turn
+                    && (ma = ecs_get_pair_second(world, g_player_id, HasAction, MovementAction))
+                    && (ma->x || ma->y))
                 ecs_singleton_get_mut(world, Map)->dijkstra_maps[DM_ORDER_PLAYER].dirty = true;
 
             vars.state = PreTurn;
