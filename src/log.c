@@ -25,7 +25,7 @@ void log_msg(Logger *l, wchar_t const *fmt, ...)
     msgbuf[MAX_LOG_MSG_LEN - 1] = L'\0';
     va_end(va);
 
-    l->pending_msgs++, l->data_id++;
+    l->data_id++;
     wcsncpy(l->msgs[l->head], msgbuf, MAX_LOG_MSG_LEN);
     l->head = (l->head + 1) & (MAX_LOG_MSGS - 1);
 }
@@ -40,18 +40,14 @@ void _log_msg(Logger *l, char const *fmt, ...)
     msgbuf[MAX_LOG_MSG_LEN - 1] = L'\0';
     va_end(va);
 
-    l->pending_msgs++, l->data_id++;
+    l->data_id++;
     mbstowcs(l->msgs[l->head], msgbuf, MAX_LOG_MSG_LEN);
     l->head = (l->head + 1) & (MAX_LOG_MSGS - 1);
 }
 
-const wchar_t *get_last_log_msg(Logger *l)
+// Gets log messages in reverse (most recent first)
+const wchar_t *nth_log_msg(Logger *l, unsigned int n)
 {
-    if (l->pending_msgs > 0) l->pending_msgs--;
-    return l->msgs[(l->head - 1) & (MAX_LOG_MSGS - 1)];
-}
-
-bool log_has_pending(const Logger *l)
-{
-    return l->pending_msgs;
+    if (l->data_id < n) return NULL;
+    return l->msgs[(l->head - 1 - n) & (MAX_LOG_MSGS - 1)];
 }

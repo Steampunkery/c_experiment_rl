@@ -48,6 +48,8 @@ CommandType get_command(KeyInfo *key, int msec_timeout)
                     return GUICommand;
                 case 'G':
                     return GUICommand;
+                case 'w':
+                    return GUICommand;
                 default:
                     return HeroCommand;
             }

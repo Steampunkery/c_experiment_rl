@@ -18,7 +18,7 @@ typedef struct Logger {
 Logger *init_logger(Logger *l);
 void log_msg(Logger *l, wchar_t const *fmt, ...);
 void _log_msg(Logger *l, char const *fmt, ...);
-const wchar_t *get_last_log_msg(Logger *l);
+const wchar_t *nth_log_msg(Logger *l, unsigned int n);
 bool log_has_pending(const Logger *l);
 
 extern Logger g_game_log;

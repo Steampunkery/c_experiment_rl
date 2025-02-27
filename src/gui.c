@@ -26,6 +26,7 @@ typedef struct {
 static enum rlsmenu_cb_res inv_slist_cb(rlsmenu_frame *frame, void *e);
 static enum rlsmenu_cb_res socket_menu_cb(rlsmenu_frame *frame, void *e);
 static enum rlsmenu_cb_res pickup_cb(rlsmenu_frame *frame, void *e);
+static enum rlsmenu_cb_res wield_cb(rlsmenu_frame *frame, void *e);
 static void on_complete(rlsmenu_frame *frame);
 static bool prep_inv_frame(FrameData *data, ecs_world_t *world, arena a);
 static bool prep_menu_select_frame(FrameData *data, ecs_world_t *world, arena a);
@@ -108,6 +109,20 @@ rlsmenu_slist pickup_frame = {
     }
 };
 
+rlsmenu_slist wield_frame = {
+    .s = {
+        .frame = {
+            .type = RLSMENU_SLIST,
+            .flags = RLSMENU_BORDER,
+            .cbs = &(rlsmenu_cbs) { wield_cb, on_complete, NULL },
+        },
+        .items = NULL,
+        .item_size = 0,
+        .n_items = 0,
+        .item_names = NULL,
+    }
+};
+
 #define INV_ITEM_ACTION_FRAMEDATA(name)             \
     &(FrameData) {                                  \
         .frame = (rlsmenu_frame *) &inv_frame_tmpl, \
@@ -134,7 +149,7 @@ rlsmenu_slist pickup_frame = {
     }
 
 // Array of data to pass along with frame.
-FrameData *gui_state[7] = {
+FrameData *gui_state[8] = {
     &(FrameData) {
         .frame = (rlsmenu_frame *) &inv_frame,
         .consumes_turn = false,
@@ -170,6 +185,16 @@ FrameData *gui_state[7] = {
         .data_id_arg.c = 0,
         .data_id_type = DATA_ID_CONST,
     },
+
+    &(FrameData) {
+        .frame = (rlsmenu_frame *) &wield_frame,
+        .consumes_turn = false,
+        .ctx = &(InvSlistCtx) { { 0 }, 0 },
+        .prep_frame = prep_inv_frame,
+        .title = L"Wield",
+        .get_data_id = get_inv_data_id,
+        .data_id_type = DATA_ID_PLAYER_TARGET,
+    },
 };
 
 FrameData *gui_state_for(char c)
@@ -182,6 +207,7 @@ FrameData *gui_state_for(char c)
         case 'D': return gui_state[4];
         case 'm': return gui_state[5];
         case ',': return gui_state[6];
+        case 'w': return gui_state[7];
         default: assert(!"Invalid GUI state!");
     }
 }
@@ -200,6 +226,7 @@ void gui_init()
 {
     FILL_FRAMEDATA_CTX_INV_SLIST('d');
     FILL_FRAMEDATA_CTX_INV_SLIST('q', { .id = ecs_pair(EcsIsA, QuaffableItem) });
+    FILL_FRAMEDATA_CTX_INV_SLIST('w', { .id = ecs_pair(EcsIsA, WeaponItem) });
 }
 
 static void on_complete(rlsmenu_frame *frame)
@@ -252,11 +279,29 @@ static enum rlsmenu_cb_res pickup_cb(rlsmenu_frame *frame, void *e)
     return RLSMENU_CB_SUCCESS;
 }
 
+static enum rlsmenu_cb_res wield_cb(rlsmenu_frame *frame, void *_e)
+{
+    FrameData *data = frame->state;
+    ecs_entity_t e = *(ecs_entity_t *) _e;
+
+    Inventory *inv = ecs_get_mut(data->world, g_player_id, Inventory);
+    ecs_entity_t wielded = ecs_get_target(data->world, g_player_id, IsWielding, 0);
+
+    inv_delete(data->world, inv, g_player_id, e);
+    if (wielded != 0)
+        inv_insert(data->world, inv, g_player_id, e);
+
+    ecs_add_pair(data->world, g_player_id, IsWielding, e);
+    log_msg(&g_game_log, L"You wield your %S", GET_NAME_COMP(data->world, e));
+
+    return RLSMENU_CB_SUCCESS;
+}
+
 static wchar_t const **entity_names(ecs_world_t *world, ecs_entity_t *entities, int n, arena *a)
 {
     wchar_t const **item_names = alloc(a, sizeof(*item_names), n);
     for (int i = 0; i < n; i++)
-        item_names[i] = ecs_get(world, entities[i], Name)->s;
+        item_names[i] = GET_NAME_COMP(world, entities[i]);
 
     return item_names;
 }

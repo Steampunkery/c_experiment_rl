@@ -33,6 +33,7 @@ PREFABS
 
     ecs_set(world, WeaponItem, Weight, { 5 });
     ecs_set(world, WeaponItem, Glyph, { L'/' });
+    ecs_set(world, WeaponItem, WeaponStats, { 1, 4 });
 
     ecs_set(world, QuaffableItem, Glyph, { L'!' });
 

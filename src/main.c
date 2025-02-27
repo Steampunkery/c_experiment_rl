@@ -18,8 +18,10 @@
 #include "rlsmenu.h"
 #include "flecs.h"
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 #include <assert.h>
 #include <uncursed/uncursed.h>
 #include <signal.h>
@@ -43,6 +45,9 @@ void try_endwin(int)
 int main(int argc, char **argv)
 {
     /*for (volatile int i = 0; i == 0;);*/
+
+    srand(time(NULL));
+
     initialize_uncursed(&argc, argv);
     initscr();
     signal(SIGABRT, try_endwin);
@@ -54,8 +59,8 @@ int main(int argc, char **argv)
 
     refresh();
     curs_set(0);
-    WINDOW *basewin = newwin(LINES - 2, COLS, 1, 0);
-    WINDOW *logwin = newwin(1, COLS, 0, 0);
+    WINDOW *basewin = newwin(LINES - 4, COLS, 3, 0);
+    WINDOW *logwin = newwin(3, COLS, 0, 0);
     WINDOW *statuswin = newwin(1, COLS, LINES - 1, 0);
 
     init_logger(&g_game_log);
@@ -72,7 +77,7 @@ int main(int argc, char **argv)
 
     dijkstra_init(world);
     Map *map = ecs_singleton_ensure(world, Map);
-    new_map(map, LINES - 2, COLS);
+    new_map(map, LINES - 4, COLS);
 
     item_init(world);
     gui_init();

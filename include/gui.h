@@ -32,7 +32,7 @@ struct FrameData {
     data_id_t data_id_type;
 };
 
-extern FrameData *gui_state[7];
+extern FrameData *gui_state[8];
 
 FrameData *gui_state_for(char c);
 void gui_init();

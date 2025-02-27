@@ -26,6 +26,9 @@ TAGS
     ecs_add_id(world, MyTurn, EcsCanToggle);
     // NOTE: Union relationships cannot have data
     ecs_add_id(world, InInventory, EcsUnion);
+    // TODO: Find a better way to store this information? This causes a table
+    // move every wield/unwield
+    ecs_add_id(world, IsWielding, EcsUnion);
     ecs_add_id(world, HasAction, EcsExclusive);
     ecs_add_id(world, ActionFromSocket, EcsCanToggle);
 }
@@ -35,20 +38,24 @@ bool inv_full(const Inventory *inv)
     return inv->end >= inv->capacity;
 }
 
-bool inv_insert(Inventory *inv, ecs_entity_t e)
+bool inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e)
 {
     if (inv->end >= inv->capacity || !e) return false;
+
     inv->items[inv->end++] = e;
     inv->data_id++;
+    ecs_add_pair(world, e, InInventory, owner);
+
     return true;
 }
 
-bool inv_delete(Inventory *inv, ecs_entity_t e)
+bool inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e)
 {
     for (int i = 0; i < inv->capacity; i++)
         if (inv->items[i] == e) {
             inv->items[i] = inv->items[--inv->end];
             inv->data_id++;
+            ecs_remove_pair(world, e, InInventory, owner);
             return true;
         }
 

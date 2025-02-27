@@ -14,7 +14,8 @@ extern ecs_entity_t initiative;
     SYSTEM(Drop, EcsOnUpdate, Inventory, (HasAction, DropAction), Position, InitiativeData,     \
            MyTurn)                                                                              \
     SYSTEM(Quaff, EcsOnUpdate, Inventory, (HasAction, QuaffAction), InitiativeData, MyTurn)     \
-    SYSTEM(Attack, EcsOnUpdate, (HasAction, AttackAction), Position, InitiativeData, MyTurn)    \
+    SYSTEM(Attack, EcsOnUpdate, (HasAction, AttackAction), Position, InitiativeData,            \
+            ?(IsWielding, $t), WeaponStats($t), MyTurn)                                         \
     SYSTEM(Prayer, EcsOnUpdate, (HasAction, PrayerAction), InitiativeData, MyTurn)              \
     SYSTEM(ApplyPoison, EcsOnUpdate, (Targets, $t), Health($t), Poison, MyTurn)                 \
     SYSTEM(StatusEffectTimer, EcsOnUpdate, TimedStatusEffect, InitiativeData, MyTurn)

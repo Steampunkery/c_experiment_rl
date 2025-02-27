@@ -7,10 +7,7 @@
 #include "sockui.h"
 
 #define INV_NEW(capacity) { 0, capacity, 0, { 0 } }
-
-typedef int wchar_t;
-typedef struct Religion Religion;
-typedef struct FrameData FrameData;
+#define GET_NAME_COMP(world, e) ecs_get(world, e, Name)->s
 
 #define COMPONENTS            \
     COMPONENT(Name)           \
@@ -36,7 +33,8 @@ typedef struct FrameData FrameData;
     COMPONENT(InitiativeData) \
     COMPONENT(MenuNetWrapper) \
     COMPONENT(TimedStatusEffect) \
-    COMPONENT(EntityCallbackEffect)
+    COMPONENT(EntityCallbackEffect) \
+    COMPONENT(WeaponStats)
 
 #define COMPONENT(c) extern ECS_COMPONENT_DECLARE(c);
 COMPONENTS
@@ -50,7 +48,12 @@ COMPONENTS
     TAG(InInventory)    \
     TAG(Poison)         \
     TAG(HasAction)      \
+    TAG(IsWielding)     \
     TAG(ActionFromSocket)
+
+typedef int wchar_t;
+typedef struct Religion Religion;
+typedef struct FrameData FrameData;
 
 #define TAG(t) extern ECS_TAG_DECLARE(t);
 TAGS
@@ -158,8 +161,14 @@ typedef struct EntityCallbackEffect {
     union cb_arg arg;
 } EntityCallbackEffect;
 
+typedef struct WeaponStats {
+    uint8_t n;
+    uint8_t sides;
+    uint8_t offset;
+} WeaponStats;
+
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);
-bool inv_insert(Inventory *inv, ecs_entity_t e);
-bool inv_delete(Inventory *inv, ecs_entity_t e);
+bool inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
+bool inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
 Inventory inv_new(int capacity);

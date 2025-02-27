@@ -15,12 +15,18 @@ void Render(ecs_iter_t *it)
     GameVars *vars = it->param;
 
     // Logging
+    static unsigned int render_log_data_id = -1;
     static const char blank[] = {[0 ... MAX_LOG_MSG_LEN] = ' '};
-    if (log_has_pending(&g_game_log)) {
-        const wchar_t *message = get_last_log_msg(&g_game_log);
-        mvwaddwstr(vars->logwin, 0, 0, message);
-        mvwaddnstr(vars->logwin, 0, wcslen(message), blank, MAX_LOG_MSG_LEN - wcslen(message));
-        wnoutrefresh(vars->logwin);
+    if (g_game_log.data_id != render_log_data_id) {
+        render_log_data_id = g_game_log.data_id;
+        for (int i = 0; i < 3; i++) {
+            const wchar_t *message = nth_log_msg(&g_game_log, i);
+            if (message == NULL)
+                continue;
+            mvwaddwstr(vars->logwin, 2-i, 0, message);
+            mvwaddnstr(vars->logwin, 2-i, wcslen(message), blank, MAX_LOG_MSG_LEN - wcslen(message));
+            wnoutrefresh(vars->logwin);
+        }
     }
 
     // Map

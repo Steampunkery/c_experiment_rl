@@ -12,7 +12,7 @@ ecs_entity_t mjolnir;
 
 void item_init(ecs_world_t *world)
 {
-    mjolnir = ecs_insert(world, { ecs_isa(WeaponItem), NULL }, ecs_value(Name, { L"Mjolnir" }));
+    mjolnir = ecs_insert(world, { ecs_isa(WeaponItem), NULL }, ecs_value(Name, { L"Mjolnir" }), ecs_value(WeaponStats, { 4, 6, 4 }));
 }
 
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
@@ -26,8 +26,7 @@ ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
     return e;
 }
 
-// Expects the existence of a Map. e == 0 indicates the first item on the tile.
-// Note: Condider removing aforementioned feature
+// Expects the existence of a Map.
 ecs_entity_t pickup_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
     Map *map = ecs_singleton_get_mut(world, Map);

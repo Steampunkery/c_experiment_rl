@@ -7,6 +7,7 @@
 #include "log.h"
 #include "religion.h"
 #include "item.h"
+#include "random.h"
 
 #include "flecs.h"
 
@@ -111,10 +112,7 @@ void Pickup(ecs_iter_t *it)
         if (!inv_full(&inv[i])) {
             ecs_entity_t e = pickup_item(it->world, pa[i].entity, pos[i].x, pos[i].y);
 
-            // Consider rolling the below two into one function because they
-            // should nearly always happen together
-            if (inv_insert(&inv[i], e)) // error handling here
-                ecs_add_pair(it->world, e, InInventory, it->entities[i]);
+            assert(inv_insert(it->world, &inv[i], it->entities[i], e)); // error handling here
         }
         init[i].points -= 50;
     }
@@ -131,10 +129,7 @@ void Drop(ecs_iter_t *it)
         assert(da[i].entity != 0);
         place_item(it->world, da[i].entity, pos[i].x, pos[i].y); // error handling here
 
-        // Consider rolling the below two into one function because they
-        // should nearly always happen together
-        assert(inv_delete(&inv[i], da[i].entity));
-        ecs_remove_pair(it->world, da[i].entity, InInventory, it->entities[i]);
+        assert(inv_delete(it->world, &inv[i], it->entities[i], da[i].entity));
 
         init[i].points -= 50;
     }
@@ -152,8 +147,7 @@ void Quaff(ecs_iter_t *it)
         assert(e != 0);
 
         // Remove quaffable from inventory
-        assert(inv_delete(&inv[i], e)); // Note, this implies that potions _must_ be present in inventory when quaffed
-        ecs_remove_pair(it->world, e, InInventory, it->entities[i]);
+        assert(inv_delete(it->world, &inv[i], it->entities[i], e)); // Note, this implies that potions _must_ be present in inventory when quaffed
 
         void *effect_type;
         if (HAS_QUAFF_EFFECT(TimedStatusEffect)) {
@@ -187,6 +181,7 @@ void Attack(ecs_iter_t *it)
     AttackAction *aa = ecs_field(it, AttackAction, 0);
     Position *pos = ecs_field(it, Position, 1);
     InitiativeData *init = ecs_field(it, InitiativeData, 2);
+    WeaponStats *ws = ecs_field(it, WeaponStats, 4);
 
     for (int i = 0; i < it->count; i++) {
         Position const *target_pos = ecs_get(it->world, aa[i].target, Position);
@@ -198,9 +193,15 @@ void Attack(ecs_iter_t *it)
                 break;
         }
 
-        if (j != 9)
+        if (j != 9) {
             // TODO: Calculate damage based on weapon, strength, defence, etc
-            target_health->val -= 20;
+            int val = ws ? roll(ws[i].n, ws[i].sides) + ws[i].offset : roll(1, 4) + 1;
+            log_msg(&g_game_log, L"%S hits %S for %d dmg",
+                    GET_NAME_COMP(it->world, it->entities[i]),
+                    GET_NAME_COMP(it->world, aa[i].target),
+                    val);
+            target_health->val -= val;
+        }
 
         init[i].points -= 100;
     }
