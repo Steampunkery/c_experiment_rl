@@ -56,3 +56,9 @@ ecs_entity_t first_prefab_at_pos(ecs_world_t *world, Map const *map, ecs_entity_
 
     return first;
 }
+
+void health_potion_cb(ecs_world_t *world, ecs_entity_t e, union cb_arg arg)
+{
+    Health *health = ecs_get_mut(world, e, Health);
+    health->val = health->val + (int) arg.c > health->total ? health->total : health->val + (int) arg.c;
+}

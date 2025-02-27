@@ -10,6 +10,8 @@
 
 #include "flecs.h"
 
+#define HAS_QUAFF_EFFECT(effect) (effect_type = ecs_get_mut_pair_second(it->world, e, HasQuaffEffect, effect))
+
 #define SYSTEM(s, ...) void s(ecs_iter_t *it);
 SYSTEMS
 #undef SYSTEM
@@ -154,7 +156,7 @@ void Quaff(ecs_iter_t *it)
         ecs_remove_pair(it->world, e, InInventory, it->entities[i]);
 
         void *effect_type;
-        if ((effect_type = ecs_get_mut_pair_second(it->world, e, HasQuaffEffect, TimedStatusEffect))) {
+        if (HAS_QUAFF_EFFECT(TimedStatusEffect)) {
             TimedStatusEffect *tse = effect_type;
             tse->target= it->entities[i];
 
@@ -165,6 +167,9 @@ void Quaff(ecs_iter_t *it)
                             { ecs_pair(Targets, tse->target), NULL }),
                     .add = ecs_ids(tse->effect_comp) // Use add to invoke constructor
             });
+        } else if (HAS_QUAFF_EFFECT(EntityCallbackEffect)) {
+            EntityCallbackEffect *ece = effect_type;
+            ece->f(it->world, it->entities[i], ece->arg);
         } else if (ecs_has_pair(it->world, e, HasQuaffEffect, EcsWildcard)) {
             assert(!"Unsupported quaff effect");
         }

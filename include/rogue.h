@@ -40,3 +40,8 @@ typedef struct {
     rlsmenu_gui *gui;
 } GameVars;
 
+union cb_arg {
+    void *p;
+    unsigned long c;
+};
+

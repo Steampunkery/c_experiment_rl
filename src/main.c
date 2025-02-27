@@ -284,6 +284,16 @@ void temp_map_init(ecs_world_t *world, Map *map)
             ecs_value(Name, { L"Potion of Poison" })
     );
     place_item(world, poison_potion2, 18, 24);
+
+    ecs_entity_t health_potion = ecs_insert(world,
+            { ecs_isa(QuaffableItem), NULL },
+            ecs_value_pair_2nd(HasQuaffEffect, EntityCallbackEffect, {
+                .f = health_potion_cb,
+                .arg.c = 20
+            }),
+            ecs_value(Name, { L"Potion of Health" })
+    );
+    place_item(world, health_potion, 18, 25);
 }
 
 void render_and_sock_menus(GameVars *vars)

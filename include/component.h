@@ -35,7 +35,8 @@ typedef struct FrameData FrameData;
     COMPONENT(Map)            \
     COMPONENT(InitiativeData) \
     COMPONENT(MenuNetWrapper) \
-    COMPONENT(TimedStatusEffect)
+    COMPONENT(TimedStatusEffect) \
+    COMPONENT(EntityCallbackEffect)
 
 #define COMPONENT(c) extern ECS_COMPONENT_DECLARE(c);
 COMPONENTS
@@ -151,6 +152,11 @@ typedef struct TimedStatusEffect {
     // The target of the effect. Set when timer entity is created
     ecs_entity_t target;
 } TimedStatusEffect;
+
+typedef struct EntityCallbackEffect {
+    void (*f)(ecs_world_t *world, ecs_entity_t e, union cb_arg arg);
+    union cb_arg arg;
+} EntityCallbackEffect;
 
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);
