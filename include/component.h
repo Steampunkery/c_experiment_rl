@@ -18,15 +18,9 @@
     COMPONENT(Stack)          \
     COMPONENT(Health)         \
     COMPONENT(Inventory)      \
-    COMPONENT(MovementAction) \
-    COMPONENT(PickupAction)   \
-    COMPONENT(DropAction)     \
-    COMPONENT(QuaffAction)    \
-    COMPONENT(AttackAction)   \
     COMPONENT(AIController)   \
     COMPONENT(Glyph)          \
     COMPONENT(Religious)      \
-    COMPONENT(PrayerAction)   \
     COMPONENT(SeeInvisible)   \
     COMPONENT(Renderable)     \
     COMPONENT(Map)            \
@@ -47,7 +41,6 @@ COMPONENTS
     TAG(HasQuaffEffect) \
     TAG(InInventory)    \
     TAG(Poison)         \
-    TAG(HasAction)      \
     TAG(IsWielding)     \
     TAG(ActionFromSocket)
 
@@ -79,25 +72,6 @@ typedef struct Health {
     int total;
     int val;
 } Health;
-
-typedef struct MovementAction {
-    int x, y;
-    int cost;
-} MovementAction;
-
-// TODO: Don't allow entity == 0
-typedef struct InvItemAction {
-    // Entity to pick up or 0 for first item in the stack
-    ecs_entity_t entity;
-} InvItemAction, PickupAction, DropAction, QuaffAction;
-
-typedef struct PrayerAction {
-    char dummy;
-} PrayerAction;
-
-typedef struct AttackAction {
-    ecs_entity_t target;
-} AttackAction;
 
 typedef struct Inventory {
     MenuChangeCounter data_id;

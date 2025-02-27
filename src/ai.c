@@ -1,28 +1,26 @@
 #include "ai.h"
 
 #include "input.h"
-#include "log.h"
 #include "monster.h"
 #include "map.h"
 #include "item.h"
 #include "prefab.h"
+#include "random.h"
 
 #include "flecs.h"
 #include "rogue.h"
-#include <stdlib.h>
 
-#define set_wait_action(e) ecs_set_pair_second(world, e, HasAction, MovementAction, { 0, 0, 100 });
+#define do_wait_action(e) Move(world, e, &(MovementAction) { 0, 0, 100 });
 
 void left_walker(ecs_world_t *world, ecs_entity_t e, void *)
 {
     if (!try_move_entity(world, e, &(MovementAction) { -1, 0, 100 }))
-        set_wait_action(e);
+        do_wait_action(e);
 }
 
 void do_nothing(ecs_world_t *world, ecs_entity_t e, void *)
 {
-    MovementAction mov = { 0, 0, 100 };
-    try_move_entity(world, e, &mov);
+    do_wait_action(e);
 }
 
 void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *)
@@ -37,7 +35,7 @@ void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *)
     } else {
         ecs_entity_t gold = first_prefab_at_pos(world, map, GoldItem, pos->x, pos->y, &(int){0});
         if (gold)
-            ecs_set_pair_second(world, e, HasAction, PickupAction, { gold });
+            Pickup(world, e, &(PickupAction) { gold });
     }
 }
 
@@ -51,12 +49,12 @@ void pet_ai(ecs_world_t *world, ecs_entity_t e, void *)
     if (dm->map[XY_TO_IDX(pos->x, pos->y, map->cols)] > 2) {
         ma = dm_flow_downhill(dm, map, pos);
     } else {
-        Position *pos = &direction8[(random() % 8)];
+        Position *pos = &direction8[randint(0, 7)];
         ma = (MovementAction) { pos->x, pos->y, get_cost_for_movement(pos->x, pos->y)};
     }
 
     if (!try_move_entity(world, e, &ma))
-        set_wait_action(e);
+        do_wait_action(e);
 }
 
 void enemy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
@@ -78,12 +76,12 @@ void enemy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
         ma = dm_flow_downhill(dm, map, pos);
         did_action = try_move_entity(world, e, &ma);
     } else {
-        ecs_set_pair_second(world, e, HasAction, AttackAction, { g_player_id });
+        Attack(world, e, &(AttackAction) { g_player_id });
         did_action = true;
     }
 
     if (!did_action)
-        set_wait_action(e);
+        do_wait_action(e);
 }
 
 MovementAction dm_flow_downhill(DijkstraMap const *dm, Map const *map, Position const *pos)

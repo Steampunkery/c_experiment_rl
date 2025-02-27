@@ -37,7 +37,7 @@ INCS        := $(INCS:%=$(ROOT_DIR)/%)
 SRC_DIR     := $(shell realpath src)
 SRCS        := ai.c component.c gui.c input.c item.c log.c main.c map.c \
 			   monster.c observer.c player.c religion.c render.c systems.c \
-			   socket_menu.c prefab.c arena.c ds.c random.c
+			   socket_menu.c prefab.c arena.c ds.c random.c action.c
 SRCS        := $(SRCS:%=$(SRC_DIR)/%)
 
 BUILD_DIR   := $(shell realpath build)

@@ -24,7 +24,7 @@ void make_invisible(ecs_world_t *world, ecs_entity_t e)
 bool try_move_entity(ecs_world_t *world, ecs_entity_t e, MovementAction *mov)
 {
     if (entity_can_traverse(world, e, &(Position){ .x = mov->x, .y = mov->y })) {
-        ecs_set_id(world, e, ecs_pair(HasAction, ecs_id(MovementAction)), sizeof(MovementAction), mov);
+        Move(world, e, mov);
         return true;
     }
 

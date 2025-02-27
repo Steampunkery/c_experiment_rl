@@ -1,17 +1,13 @@
 #include "systems.h"
 
 #include "component.h"
-#include "input.h"
 #include "map.h"
 #include "render.h"
 #include "log.h"
 #include "religion.h"
 #include "item.h"
-#include "random.h"
 
 #include "flecs.h"
-
-#define HAS_QUAFF_EFFECT(effect) (effect_type = ecs_get_mut_pair_second(it->world, e, HasQuaffEffect, effect))
 
 #define SYSTEM(s, ...) void s(ecs_iter_t *it);
 SYSTEMS
@@ -82,155 +78,6 @@ void AI(ecs_iter_t *it)
 
     for (int i = 0; i < it->count; i++) {
         aic[i].ai_func(it->world, it->entities[i], aic[i].state);
-    }
-}
-
-void Move(ecs_iter_t *it)
-{
-    Position *pos = ecs_field(it, Position, 0);
-    MovementAction *mov = ecs_field(it, MovementAction, 1);
-    InitiativeData *init = ecs_field(it, InitiativeData, 2);
-    Map *map = ecs_singleton_get_mut(it->world, Map);
-
-    for (int i = 0; i < it->count; i++) {
-        map_remove_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
-        pos[i].x += mov[i].x;
-        pos[i].y += mov[i].y;
-        map_place_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
-        init[i].points -= mov[i].cost;
-    }
-}
-
-void Pickup(ecs_iter_t *it)
-{
-    Inventory *inv = ecs_field(it, Inventory, 0);
-    PickupAction *pa = ecs_field(it, PickupAction, 1);
-    Position *pos = ecs_field(it, Position, 2);
-    InitiativeData *init = ecs_field(it, InitiativeData, 3);
-
-    for (int i = 0; i < it->count; i++) {
-        if (!inv_full(&inv[i])) {
-            ecs_entity_t e = pickup_item(it->world, pa[i].entity, pos[i].x, pos[i].y);
-
-            assert(inv_insert(it->world, &inv[i], it->entities[i], e)); // error handling here
-        }
-        init[i].points -= 50;
-    }
-}
-
-void Drop(ecs_iter_t *it)
-{
-    Inventory *inv = ecs_field(it, Inventory, 0);
-    DropAction *da = ecs_field(it, DropAction, 1);
-    Position *pos = ecs_field(it, Position, 2);
-    InitiativeData *init = ecs_field(it, InitiativeData, 3);
-
-    for (int i = 0; i < it->count; i++) {
-        assert(da[i].entity != 0);
-        place_item(it->world, da[i].entity, pos[i].x, pos[i].y); // error handling here
-
-        assert(inv_delete(it->world, &inv[i], it->entities[i], da[i].entity));
-
-        init[i].points -= 50;
-    }
-}
-
-void Quaff(ecs_iter_t *it)
-{
-    Inventory *inv = ecs_field(it, Inventory, 0);
-    QuaffAction *qa = ecs_field(it, QuaffAction, 1);
-    InitiativeData *init = ecs_field(it, InitiativeData, 2);
-
-    ecs_entity_t e;
-    for (int i = 0; i < it->count; i++) {
-        e = qa[i].entity;
-        assert(e != 0);
-
-        // Remove quaffable from inventory
-        assert(inv_delete(it->world, &inv[i], it->entities[i], e)); // Note, this implies that potions _must_ be present in inventory when quaffed
-
-        void *effect_type;
-        if (HAS_QUAFF_EFFECT(TimedStatusEffect)) {
-            TimedStatusEffect *tse = effect_type;
-            tse->target= it->entities[i];
-
-            ecs_entity(it->world, {
-                    .set = ecs_values(
-                            ecs_value_ptr(TimedStatusEffect, effect_type),
-                            ecs_value(InitiativeData, { 0, 10 }),
-                            { ecs_pair(Targets, tse->target), NULL }),
-                    .add = ecs_ids(tse->effect_comp) // Use add to invoke constructor
-            });
-        } else if (HAS_QUAFF_EFFECT(EntityCallbackEffect)) {
-            EntityCallbackEffect *ece = effect_type;
-            ece->f(it->world, it->entities[i], ece->arg);
-        } else if (ecs_has_pair(it->world, e, HasQuaffEffect, EcsWildcard)) {
-            assert(!"Unsupported quaff effect");
-        }
-
-        // After quaffing, the potion no longer exists
-        ecs_delete(it->world, e);
-
-        init[i].points -= 50;
-    }
-
-}
-
-void Attack(ecs_iter_t *it)
-{
-    AttackAction *aa = ecs_field(it, AttackAction, 0);
-    Position *pos = ecs_field(it, Position, 1);
-    InitiativeData *init = ecs_field(it, InitiativeData, 2);
-    WeaponStats *ws = ecs_field(it, WeaponStats, 4);
-
-    for (int i = 0; i < it->count; i++) {
-        Position const *target_pos = ecs_get(it->world, aa[i].target, Position);
-        Health *target_health = ecs_get_mut(it->world, aa[i].target, Health);
-
-        int j;
-        for (j = 0; j < 9; j++) {
-            if (target_pos->x == (pos->x + direction9[j].x) && target_pos->y == (pos->y + direction9[j].y))
-                break;
-        }
-
-        if (j != 9) {
-            // TODO: Calculate damage based on weapon, strength, defence, etc
-            int val = ws ? roll(ws[i].n, ws[i].sides) + ws[i].offset : roll(1, 4) + 1;
-            log_msg(&g_game_log, L"%S hits %S for %d dmg",
-                    GET_NAME_COMP(it->world, it->entities[i]),
-                    GET_NAME_COMP(it->world, aa[i].target),
-                    val);
-            target_health->val -= val;
-        }
-
-        init[i].points -= 100;
-    }
-
-}
-
-void Prayer(ecs_iter_t *it)
-{
-    InitiativeData *init = ecs_field(it, InitiativeData, 1);
-
-    Religious *rel;
-    for (int i = 0; i < it->count; i++) {
-        if (!ecs_has_id(it->world, it->entities[i], ecs_id(Religious))) {
-            if (it->entities[i] == g_player_id) {
-                log_msg(&g_game_log, L"Your supplication falls upon deaf ears");
-            }
-        } else {
-            rel = ecs_get_mut(it->world, it->entities[i], Religious);
-            Religion *r = rel->religion;
-            if (rel->favors_left > 0 && r->boons[r->boon_idx]) {
-                bestow_boon(it->world, rel, it->entities[i]);
-            } else {
-                if (it->entities[i] == g_player_id) {
-                    log_msg(&g_game_log, L"%S is indifferent to your plea", rel->religion->deity_name);
-                }
-            }
-        }
-
-        init[i].points -= 200;
     }
 }
 

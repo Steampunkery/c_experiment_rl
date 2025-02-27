@@ -1,5 +1,6 @@
 #include "gui.h"
 
+#include "action.h"
 #include "arena.h"
 #include "component.h"
 #include "log.h"
@@ -10,7 +11,6 @@
 #include "ds.h"
 
 #include "rlsmenu.h"
-#include "sockui.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +20,7 @@
 
 typedef struct {
     ecs_query_desc_t query_desc;
-    ecs_id_t *action;
+    ActionFunc action;
 } InvSlistCtx;
 
 static enum rlsmenu_cb_res inv_slist_cb(rlsmenu_frame *frame, void *e);
@@ -129,7 +129,7 @@ rlsmenu_slist wield_frame = {
         .consumes_turn = true,                      \
         .ctx = &(InvSlistCtx) {                     \
             .query_desc = { 0 },                    \
-            .action = &ecs_id(name##Action)         \
+            .action = (ActionFunc) name             \
         },                                          \
         .title = L###name,                          \
         .prep_frame = prep_inv_frame,               \
@@ -243,7 +243,8 @@ static enum rlsmenu_cb_res inv_slist_cb(rlsmenu_frame *frame, void *e)
     FrameData *data = frame->state;
     InvSlistCtx *ctx = data->ctx;
 
-    ecs_set_id(data->world, g_player_id, ecs_pair(HasAction, *ctx->action), sizeof(InvItemAction), &(InvItemAction) { *(ecs_entity_t *) e });
+    if (ctx->action)
+        ctx->action(data->world, g_player_id, &(InvItemAction) { *(ecs_entity_t *) e });
     return RLSMENU_CB_SUCCESS;
 }
 
@@ -275,7 +276,7 @@ static enum rlsmenu_cb_res pickup_cb(rlsmenu_frame *frame, void *e)
 {
     FrameData *data = frame->state;
 
-    ecs_set_pair_second(data->world, g_player_id, HasAction, PickupAction, { *(ecs_entity_t *) e });
+    Pickup(data->world, g_player_id, &(PickupAction) { *(ecs_entity_t *) e });
     return RLSMENU_CB_SUCCESS;
 }
 

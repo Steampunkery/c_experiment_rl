@@ -7,6 +7,7 @@
 #include "religion.h"
 #include "component.h"
 #include "prefab.h"
+#include "action.h"
 
 #include "flecs.h"
 #include "rogue.h"
@@ -57,17 +58,20 @@ GameState process_player_input(ecs_world_t *world, KeyInfo *key)
         // TODO: Factions!
         e = first_prefab_at_pos(world, ecs_singleton_get(world, Map), Goblin, pos2->x + pos->x, pos2->y + pos->y, &(int){0});
         if (e != 0) {
-            ecs_set_pair_second(world, g_player_id, HasAction, AttackAction, { e });
+            Attack(world, g_player_id, &(AttackAction) { e });
             return RunSystems;
         }
 
         int cost = get_cost_for_movement(pos->x, pos->y);
-        MovementAction mov = { pos->x, pos->y, cost };
 
-        return try_move_entity(world, g_player_id, &mov) ? RunSystems : PlayerTurn;
+        bool res = try_move_entity(world, g_player_id, &(MovementAction) { pos->x, pos->y, cost });
+        if (res)
+            ecs_singleton_get_mut(world, Map)->dijkstra_maps[DM_ORDER_PLAYER].dirty = true;
+
+        return res ? RunSystems : PlayerTurn;
 
     case WaitInput:
-        ecs_set_pair_second(world, g_player_id, HasAction, MovementAction, { 0, 0, 10 });
+        Move(world, g_player_id, &(MovementAction) { 0, 0, 10 });
         return RunSystems;
 
     case PickupInput:
@@ -84,11 +88,11 @@ GameState process_player_input(ecs_world_t *world, KeyInfo *key)
         if (n > 1)
             return NewGUIFrame;
 
-        ecs_set_pair_second(world, g_player_id, HasAction, PickupAction, { e });
+        Pickup(world, g_player_id, &(PickupAction) { e });
         return RunSystems;
 
     case PrayerInput:
-        ecs_set_pair_second(world, g_player_id, HasAction, PrayerAction, { '\0' });
+        Prayer(world, g_player_id, NULL);
         return RunSystems;
 
     case NotImplemented:

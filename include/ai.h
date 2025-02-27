@@ -1,10 +1,11 @@
 #pragma once
-#include "component.h"
+#include "action.h"
 
 typedef long unsigned int ecs_entity_t;
 typedef struct ecs_world_t ecs_world_t;
 typedef struct DijkstraMap DijkstraMap;
 typedef struct Map Map;
+typedef struct Position Position;
 
 typedef struct {
     float health_flee_p;
