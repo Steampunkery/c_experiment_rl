@@ -12,6 +12,8 @@
 
 #define do_wait_action(e) Move(world, e, &(MovementAction) { 0, 0, 100 });
 
+static bool fuzzy_downhill(ecs_world_t *world, ecs_entity_t e, DijkstraMap const *dm, Map const *map, Position const *pos);
+
 void left_walker(ecs_world_t *world, ecs_entity_t e, void *)
 {
     if (!try_move_entity(world, e, &(MovementAction) { -1, 0, 100 }))
@@ -29,14 +31,18 @@ void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *)
     Position const *pos = ecs_get(world, e, Position);
     DijkstraMap const *dm = &map->dijkstra_maps[DM_ORDER_GOLD].dm;
 
+    bool did_action = false;
     if (dm->map[XY_TO_IDX(pos->x, pos->y, map->cols)] > 0) {
-        MovementAction ma = dm_flow_downhill(dm, map, pos);
-        try_move_entity(world, e, &ma);
+        did_action = fuzzy_downhill(world, e, dm, map, pos);
     } else {
         ecs_entity_t gold = first_prefab_at_pos(world, map, GoldItem, pos->x, pos->y, &(int){0});
         if (gold)
             Pickup(world, e, &(PickupAction) { gold });
+        did_action = !!gold;
     }
+
+    if (!did_action)
+        do_wait_action(e);
 }
 
 void pet_ai(ecs_world_t *world, ecs_entity_t e, void *)
@@ -45,15 +51,17 @@ void pet_ai(ecs_world_t *world, ecs_entity_t e, void *)
     Position const *pos = ecs_get(world, e, Position);
     DijkstraMap const *dm = &map->dijkstra_maps[DM_ORDER_PLAYER].dm;
 
+    bool did_action = false;
     MovementAction ma;
     if (dm->map[XY_TO_IDX(pos->x, pos->y, map->cols)] > 2) {
-        ma = dm_flow_downhill(dm, map, pos);
+        did_action = fuzzy_downhill(world, e, dm, map, pos);
     } else {
         Position *pos = &direction8[randint(0, 7)];
         ma = (MovementAction) { pos->x, pos->y, get_cost_for_movement(pos->x, pos->y)};
+        did_action = try_move_entity(world, e, &ma);
     }
 
-    if (!try_move_entity(world, e, &ma))
+    if (!did_action)
         do_wait_action(e);
 }
 
@@ -73,8 +81,7 @@ void enemy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
         ma = dm_flow_uphill(dm, map, pos);
         did_action = try_move_entity(world, e, &ma);
     } else if (dm->map[XY_TO_IDX(pos->x, pos->y, map->cols)] > 1.5) {
-        ma = dm_flow_downhill(dm, map, pos);
-        did_action = try_move_entity(world, e, &ma);
+        did_action = fuzzy_downhill(world, e, dm, map, pos);
     } else {
         Attack(world, e, &(AttackAction) { g_player_id });
         did_action = true;
@@ -128,4 +135,23 @@ MovementAction dm_flow_uphill(DijkstraMap const *dm, Map const *map, Position co
     ma.cost = get_cost_for_movement(ma.x, ma.y);
 
     return ma;
+}
+
+// If the optimal path is blocked by a non-map feature, try to perturb the path randomly, once
+static bool fuzzy_downhill(ecs_world_t *world, ecs_entity_t e, DijkstraMap const *dm, Map const *map, Position const *pos)
+{
+    MovementAction ma = dm_flow_downhill(dm, map, pos);
+    if (try_move_entity(world, e, &ma))
+        return true;
+
+    int r = randint(0, 1);
+    if (ma.x && ma.y)
+        r ? (ma.x = 0) : (ma.y = 0);
+    else if (ma.x == 0)
+        ma.x = r ? 1 : -1;
+    else
+        ma.y = r ? 1 : -1;
+
+    ma.cost = get_cost_for_movement(ma.x, ma.y);
+    return try_move_entity(world, e, &ma);
 }
