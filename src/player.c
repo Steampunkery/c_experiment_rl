@@ -62,15 +62,15 @@ GameState process_player_input(ecs_world_t *world, KeyInfo *key)
             return RunSystems;
         }
 
-        int cost = get_cost_for_movement(pos->x, pos->y);
-
-        bool res = try_move_entity(world, g_player_id, &(MovementAction) { pos->x, pos->y, cost });
-        if (res)
+        bool res = try_move_entity(world, g_player_id, &(MovementAction) {
+                pos->x, pos->y, get_cost_for_movement(pos->x, pos->y) });
+        if (res && (pos->x || pos->y))
             ecs_singleton_get_mut(world, Map)->dijkstra_maps[DM_ORDER_PLAYER].dirty = true;
 
         return res ? RunSystems : PlayerTurn;
 
     case WaitInput:
+        // TODO: Hardcoded movement cost
         Move(world, g_player_id, &(MovementAction) { 0, 0, 10 });
         return RunSystems;
 

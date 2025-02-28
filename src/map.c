@@ -132,15 +132,22 @@ bool is_passable(const Map *map, int x, int y)
 
 bool entity_can_traverse(ecs_world_t *world, ecs_entity_t e, Position *off)
 {
-    const Map *map = ecs_singleton_get(world, Map);
-    const Position *pos = ecs_get(world, e, Position);
+    if (!off->x && !off->y) return true;
+    Map const *map = ecs_singleton_get(world, Map);
+    Position const *pos = ecs_get(world, e, Position);
     int new_x = pos->x + off->x;
     int new_y = pos->y + off->y;
 
-    if (!map_contains(map, new_x, new_y)) return 0;
-    if (!is_passable(map, new_x, new_y)) return 0;
+    if (!map_contains(map, new_x, new_y)) return false;
+    if (!is_passable(map, new_x, new_y)) return false;
 
-    return 1;
+    // TODO: If this becomes costly, separate items and monsters or keep a count?
+    entity_vec *entities = &map->entities[new_y][new_x];
+    for (int i = 0; i < entities->size; i++)
+        if (ecs_has_pair(world, entities->data[i], EcsIsA, Monster))
+            return false;
+
+    return true;
 }
 
 // Assumes in-bounds

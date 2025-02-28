@@ -11,14 +11,19 @@
 
 void Move(ecs_world_t *world, ecs_entity_t e, MovementAction *ma)
 {
-    Position *pos = ecs_get_mut(world, e, Position);
     InitiativeData *init = ecs_get_mut(world, e, InitiativeData);
+    if (!ma->x && !ma->y)
+        goto out;
+
+    Position *pos = ecs_get_mut(world, e, Position);
     Map *map = ecs_singleton_get_mut(world, Map);
 
     map_remove_entity(world, map, e, pos->x, pos->y);
     pos->x += ma->x;
     pos->y += ma->y;
     map_place_entity(world, map, e, pos->x, pos->y);
+
+out:
     init->points -= ma->cost;
 }
 

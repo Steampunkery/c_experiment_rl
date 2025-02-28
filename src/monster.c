@@ -7,6 +7,7 @@
 #include "flecs.h"
 #include <math.h>
 
+// TODO: Hardcoded movement cost
 int get_cost_for_movement(int x, int y)
 {
     // Waiting should cost a full turn
