@@ -34,7 +34,7 @@ void Pickup(ecs_world_t *world, ecs_entity_t e, PickupAction *pa)
     InitiativeData *init = ecs_get_mut(world, e, InitiativeData);
 
     ecs_entity_t pickup_e = pickup_item(world, pa->entity, pos->x, pos->y);
-    assert(inv_insert(world, inv, e, pickup_e)); // error handling here
+    inv_insert(world, inv, e, pickup_e);
     init->points -= 50;
 }
 
@@ -47,7 +47,7 @@ void Drop(ecs_world_t *world, ecs_entity_t e, DropAction *da)
     assert(da->entity != 0);
     place_item(world, da->entity, pos->x, pos->y); // error handling here
 
-    assert(inv_delete(world, inv, e, da->entity));
+    inv_delete(world, inv, e, da->entity);
 
     init->points -= 50;
 }
@@ -61,19 +61,20 @@ void Quaff(ecs_world_t *world, ecs_entity_t e, QuaffAction *qa)
     assert(quaff_e != 0);
 
     // Remove quaffable from inventory
-    assert(inv_delete(world, inv, e, quaff_e)); // Note, this implies that potions _must_ be present in inventory when quaffed
+    inv_delete(world, inv, e, quaff_e); // Note, this implies that potions _must_ be present in inventory when quaffed
 
     void *effect_type;
     if (HAS_QUAFF_EFFECT(TimedStatusEffect)) {
         TimedStatusEffect *tse = effect_type;
         tse->target= e;
 
+        // ChildOf to do automatic deletion
         ecs_entity(world, {
                 .set = ecs_values(
                         ecs_value_ptr(TimedStatusEffect, effect_type),
                         ecs_value(InitiativeData, { 0, 10 }),
                         { ecs_pair(Targets, tse->target), NULL }),
-                .add = ecs_ids(tse->effect_comp) // Use add to invoke constructor
+                .add = ecs_ids(tse->effect_comp, ecs_pair(EcsChildOf, tse->target)) // Use add to invoke constructor
         });
     } else if (HAS_QUAFF_EFFECT(EntityCallbackEffect)) {
         EntityCallbackEffect *ece = effect_type;
@@ -101,6 +102,9 @@ void Attack(ecs_world_t *world, ecs_entity_t e, AttackAction *aa)
     int val = ws ? roll(ws->n, ws->sides) + ws->offset : roll(1, 4) + 1;
     log_msg(&g_game_log, L"%S hits %S for %d dmg", GET_NAME_COMP(world, e), GET_NAME_COMP(world, aa->target), val);
     target_health->val -= val;
+
+    if (target_health->val <= 0)
+        ecs_add(world, aa->target, Dead);
 
     init->points -= 100;
 

@@ -37,26 +37,25 @@ bool inv_full(const Inventory *inv)
     return inv->end >= inv->capacity;
 }
 
-bool inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e)
+void inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e)
 {
-    if (inv->end >= inv->capacity || !e) return false;
+    assert(inv->end < inv->capacity);
+    assert(e != 0);
 
     inv->items[inv->end++] = e;
     inv->data_id++;
     ecs_add_pair(world, e, InInventory, owner);
-
-    return true;
 }
 
-bool inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e)
+void inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e)
 {
     for (int i = 0; i < inv->capacity; i++)
         if (inv->items[i] == e) {
             inv->items[i] = inv->items[--inv->end];
             inv->data_id++;
             ecs_remove_pair(world, e, InInventory, owner);
-            return true;
+            return;
         }
 
-    return false;
+    assert(!"inv_delete non-existent item");
 }

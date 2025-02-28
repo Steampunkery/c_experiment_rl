@@ -42,6 +42,7 @@ COMPONENTS
     TAG(InInventory)    \
     TAG(Poison)         \
     TAG(IsWielding)     \
+    TAG(Dead)           \
     TAG(ActionFromSocket)
 
 typedef int wchar_t;
@@ -143,6 +144,6 @@ typedef struct WeaponStats {
 
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);
-bool inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
-bool inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
+void inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
+void inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
 Inventory inv_new(int capacity);

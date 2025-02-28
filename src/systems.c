@@ -104,3 +104,27 @@ void StatusEffectTimer(ecs_iter_t *it)
         ecs_delete(it->world, it->entities[i]);
     }
 }
+
+void DeathCleanup(ecs_iter_t *it)
+{
+    // field 0 is Dead
+    Position *pos = ecs_field(it, Position, 1);
+    Inventory *inv = ecs_field(it, Inventory, 2);
+
+    Map *map = ecs_singleton_get_mut(it->world, Map);
+    for (int i = 0; i < it->count; i++) {
+        map_remove_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
+
+        if (inv)
+            for (int j = 0; j < inv[i].end; j++) {
+                ecs_remove_pair(it->world, inv[i].items[j], InInventory, it->entities[i]);
+                place_item(it->world, inv[i].items[j], pos[i].x, pos[i].y);
+            }
+
+        ecs_entity_t w;
+        if ((w = ecs_get_target(it->world, it->entities[i], IsWielding, 0)))
+            place_item(it->world, w, pos[i].x, pos[i].y);
+
+        ecs_delete(it->world, it->entities[i]);
+    }
+}

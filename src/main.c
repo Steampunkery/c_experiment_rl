@@ -129,6 +129,8 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(ApplyPoison), 0.0, NULL);
             ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
 
+            ecs_run(world, ecs_id(DeathCleanup), 0.0, NULL);
+
             vars.state = PreTurn;
             break;
         case NewGUIFrame:

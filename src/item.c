@@ -15,6 +15,7 @@ void item_init(ecs_world_t *world)
     mjolnir = ecs_insert(world, { ecs_isa(WeaponItem), NULL }, ecs_value(Name, { L"Mjolnir" }), ecs_value(WeaponStats, { 4, 6, 4 }));
 }
 
+// TODO: Revisit API of this and pickup_item w.r.t passing map as an argument
 ecs_entity_t place_item(ecs_world_t *world, ecs_entity_t e, int x, int y)
 {
     Map *map = ecs_singleton_get_mut(world, Map);
