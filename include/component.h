@@ -28,7 +28,8 @@
     COMPONENT(MenuNetWrapper) \
     COMPONENT(TimedStatusEffect) \
     COMPONENT(EntityCallbackEffect) \
-    COMPONENT(WeaponStats)
+    COMPONENT(WeaponStats) \
+    COMPONENT(WieldDescriptor)
 
 #define COMPONENT(c) extern ECS_COMPONENT_DECLARE(c);
 COMPONENTS
@@ -41,7 +42,6 @@ COMPONENTS
     TAG(HasQuaffEffect) \
     TAG(InInventory)    \
     TAG(Poison)         \
-    TAG(IsWielding)     \
     TAG(Dead)           \
     TAG(ActionFromSocket)
 
@@ -141,6 +141,10 @@ typedef struct WeaponStats {
     uint8_t sides;
     uint8_t offset;
 } WeaponStats;
+
+typedef struct WieldDescriptor {
+    ecs_entity_t main;
+} WieldDescriptor;
 
 void register_components(ecs_world_t *world);
 bool inv_full(const Inventory *inv);

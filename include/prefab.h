@@ -8,8 +8,9 @@
     PREFAB(WeaponItem, (IsA, Item))    \
     PREFAB(QuaffableItem, (IsA, Item)) \
     PREFAB(Monster)                    \
-    PREFAB(Goblin, (IsA, Monster))     \
-    PREFAB(Player, (IsA, Monster))     \
+    PREFAB(Humanoid, (IsA, Monster))   \
+    PREFAB(Goblin, (IsA, Humanoid))    \
+    PREFAB(Player, (IsA, Humanoid))    \
     PREFAB(Dog, (IsA, Monster))
 
 #define PREFAB(p, ...) extern ECS_PREFAB_DECLARE(p);

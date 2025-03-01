@@ -121,9 +121,9 @@ void DeathCleanup(ecs_iter_t *it)
                 place_item(it->world, inv[i].items[j], pos[i].x, pos[i].y);
             }
 
-        ecs_entity_t w;
-        if ((w = ecs_get_target(it->world, it->entities[i], IsWielding, 0)))
-            place_item(it->world, w, pos[i].x, pos[i].y);
+        WieldDescriptor const *wd;
+        if ((wd = ecs_get(it->world, it->entities[i], WieldDescriptor)) && wd->main)
+            place_item(it->world, wd->main, pos[i].x, pos[i].y);
 
         ecs_delete(it->world, it->entities[i]);
     }

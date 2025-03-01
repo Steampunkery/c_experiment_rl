@@ -286,13 +286,13 @@ static enum rlsmenu_cb_res wield_cb(rlsmenu_frame *frame, void *_e)
     ecs_entity_t e = *(ecs_entity_t *) _e;
 
     Inventory *inv = ecs_get_mut(data->world, g_player_id, Inventory);
-    ecs_entity_t wielded = ecs_get_target(data->world, g_player_id, IsWielding, 0);
+    WieldDescriptor *wd = ecs_get_mut(data->world, g_player_id, WieldDescriptor);
 
     inv_delete(data->world, inv, g_player_id, e);
-    if (wielded != 0)
-        inv_insert(data->world, inv, g_player_id, e);
+    if (wd && wd->main)
+        inv_insert(data->world, inv, g_player_id, wd->main);
 
-    ecs_add_pair(data->world, g_player_id, IsWielding, e);
+    wd->main = e;
     log_msg(&g_game_log, L"You wield your %S", GET_NAME_COMP(data->world, e));
 
     return RLSMENU_CB_SUCCESS;

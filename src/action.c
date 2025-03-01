@@ -93,8 +93,8 @@ void Attack(ecs_world_t *world, ecs_entity_t e, AttackAction *aa)
 {
     InitiativeData *init = ecs_get_mut(world, e, InitiativeData);
 
-    ecs_entity_t weapon = ecs_get_target(world, e, IsWielding, 0);
-    WeaponStats const *ws = weapon ? ecs_get(world, weapon, WeaponStats) : NULL;
+    WieldDescriptor const *wd = ecs_get(world, e, WieldDescriptor);
+    WeaponStats const *ws = wd && wd->main ? ecs_get(world, wd->main, WeaponStats) : NULL;
 
     Health *target_health = ecs_get_mut(world, aa->target, Health);
 

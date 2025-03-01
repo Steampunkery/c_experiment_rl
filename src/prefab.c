@@ -44,6 +44,8 @@ PREFABS
     ecs_set(world, Monster, Health, { 100, 100 });
     ecs_set(world, Monster, Renderable, { true });
 
+    ecs_set(world, Humanoid, WieldDescriptor, { 0 });
+
     ecs_set(world, Goblin, Name, { L"Goblin" });
     ecs_set(world, Goblin, Inventory, INV_NEW(10));
     ecs_set(world, Goblin, Glyph, { L'g' });

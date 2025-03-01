@@ -28,7 +28,6 @@ TAGS
     ecs_add_id(world, InInventory, EcsUnion);
     // TODO: Find a better way to store this information? This causes a table
     // move every wield/unwield
-    ecs_add_id(world, IsWielding, EcsUnion);
     ecs_add_id(world, ActionFromSocket, EcsCanToggle);
 }
 
