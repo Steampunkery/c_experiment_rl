@@ -70,11 +70,12 @@ void Quaff(ecs_world_t *world, ecs_entity_t e, QuaffAction *qa)
 
         // ChildOf to do automatic deletion
         ecs_entity(world, {
+                .parent = tse->target,
                 .set = ecs_values(
                         ecs_value_ptr(TimedStatusEffect, effect_type),
                         ecs_value(InitiativeData, { 0, 10 }),
                         { ecs_pair(Targets, tse->target), NULL }),
-                .add = ecs_ids(tse->effect_comp, ecs_pair(EcsChildOf, tse->target)) // Use add to invoke constructor
+                .add = ecs_ids(tse->effect_comp) // Use add to invoke constructor
         });
     } else if (HAS_QUAFF_EFFECT(EntityCallbackEffect)) {
         EntityCallbackEffect *ece = effect_type;
