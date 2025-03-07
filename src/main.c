@@ -90,6 +90,11 @@ int main(int argc, char **argv)
 
     temp_map_init(world, map);
 
+    // Call this twice. Once to clean, twice to delete
+    ecs_delete_empty_tables(world, 0, 1, 1, 0, 0);
+    int del = ecs_delete_empty_tables(world, 0, 1, 1, 0, 0);
+    log_msg(&g_debug_log, L"Deleted %d empty tables", del);
+
     GameVars vars = {
         .state = PreTurn,
         .basewin = basewin,

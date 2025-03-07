@@ -5,6 +5,7 @@
 #define FLECS_SYSTEM
 #define FLECS_SCRIPT
 #define FLECS_LOG
+#define FLECS_DEBUG
 
 /**
  * @file flecs.h
