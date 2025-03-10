@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <assert.h>
-#include <uncursed/uncursed.h>
+#include "uncursed.h"
 #include <signal.h>
 
 CommandType get_command(KeyInfo *key, int msec_timeout);

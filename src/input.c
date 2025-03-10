@@ -3,7 +3,7 @@
 #include "component.h"
 
 #include "rlsmenu.h"
-#include <uncursed/uncursed.h>
+#include "uncursed.h"
 
 Position direction8[] = {
     { -1, 1 }, { 0, 1 }, { 1, 1 }, { -1, 0 },

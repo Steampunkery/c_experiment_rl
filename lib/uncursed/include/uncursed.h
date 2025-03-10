@@ -14,9 +14,9 @@
 #include <wchar.h>
 
 #ifdef UNCURSED_MAIN_PROGRAM
-# define EI(x) AIMAKE_EXPORT(x)
+# define EI(x) __attribute__((visibility("default"))) x
 #else
-# define EI(x) AIMAKE_IMPORT(x)
+# define EI(x) x
 #endif
 
 #define UNCURSED_ANDWINDOW(t, f, ...)                    \

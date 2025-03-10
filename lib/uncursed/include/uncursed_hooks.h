@@ -89,9 +89,9 @@ struct uncursed_hooks {
 };
 
 #ifdef UNCURSED_MAIN_PROGRAM
-# define HOOK_EI(x) AIMAKE_EXPORT(x)
+# define HOOK_EI(x) __attribute__((visibility("default"))) x
 #else
-# define HOOK_EI(x) AIMAKE_IMPORT(x)
+# define HOOK_EI(x) x
 #endif
 
 typedef struct uncursed_hooks *uncursed_hooks_p;

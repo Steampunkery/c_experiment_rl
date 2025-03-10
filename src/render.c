@@ -7,7 +7,7 @@
 
 #include "rlsmenu.h"
 #include "flecs.h"
-#include <uncursed/uncursed.h>
+#include "uncursed.h"
 
 void Render(ecs_iter_t *it)
 {

@@ -1,8 +1,7 @@
 CC=gcc
 CXX=g++
 CFLAGS=-Wall -Wextra -Wno-missing-field-initializers -Wno-sign-compare -Wno-unused-parameter -g3 -ldl -I include
-CPPFLAGS=-DAIMAKE_IMPORT\(x\)=x -DAIMAKE_EXPORT=__attribute__\(\(visibility\(\"default\"\)\)\) \
-		 -DAIMAKE_ABI_VERSION\(x\)=' ' -DAIMAKE_NORETURN=_Noreturn -DAIMAKE_BUILDOS_linux -D_XOPEN_SOURCE=700 -D_REENTRANT
+CPPFLAGS=-DAIMAKE_ABI_VERSION\(x\)=' ' -DAIMAKE_NORETURN=_Noreturn -DAIMAKE_BUILDOS_linux -D_XOPEN_SOURCE=700 -D_REENTRANT
 CXXFLAGS=-I include
 
 # Note that tty.o and wrap_tty.o _must_ be linked in, and a static library does not guarantee this

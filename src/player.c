@@ -11,7 +11,7 @@
 
 #include "flecs.h"
 #include "rogue.h"
-#include <uncursed/uncursed.h>
+#include "uncursed.h"
 
 ecs_entity_t init_player(ecs_world_t *world)
 {
