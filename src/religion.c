@@ -11,7 +11,7 @@ Religion pastafarianism = {
     .deity_name = L"The Flying Spaghetti Monster",
     .follower_title = L"Pastafarian",
     .num_followers = 0,
-    .boons = { &AB_SeeInvisible.super, &IB_Mjolnir.super, NULL },
+    .boons = { &AB_SeeInvisible.super, &IB_Mjolnir.super, &IB_Brisingr.super },
     .boon_idx = 0,
 };
 
@@ -30,6 +30,14 @@ ItemBoon IB_Mjolnir = {
         .type = BOONTYPE_ITEM,
     },
     .item = &mjolnir,
+};
+
+ItemBoon IB_Brisingr = {
+    .super = {
+        .name = L"The Flaming Sword Brisingr",
+        .type = BOONTYPE_ITEM,
+    },
+    .item = &brisingr,
 };
 
 // Add a follower to a given religion

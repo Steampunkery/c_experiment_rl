@@ -9,41 +9,43 @@
 #define INV_NEW(capacity) { 0, capacity, 0, { 0 } }
 #define GET_NAME_COMP(world, e) ecs_get(world, e, Name)->s
 
-#define COMPONENTS            \
-    COMPONENT(Name)           \
-    COMPONENT(Position)       \
-    COMPONENT(Weight)         \
-    COMPONENT(Value)          \
-    COMPONENT(Satiation)      \
-    COMPONENT(Stack)          \
-    COMPONENT(Health)         \
-    COMPONENT(Inventory)      \
-    COMPONENT(AIController)   \
-    COMPONENT(Glyph)          \
-    COMPONENT(Religious)      \
-    COMPONENT(SeeInvisible)   \
-    COMPONENT(Renderable)     \
-    COMPONENT(Map)            \
-    COMPONENT(InitiativeData) \
-    COMPONENT(MenuNetWrapper) \
-    COMPONENT(TimedStatusEffect) \
+#define COMPONENTS                  \
+    COMPONENT(Name)                 \
+    COMPONENT(Position)             \
+    COMPONENT(Weight)               \
+    COMPONENT(Value)                \
+    COMPONENT(Satiation)            \
+    COMPONENT(Stack)                \
+    COMPONENT(Health)               \
+    COMPONENT(Inventory)            \
+    COMPONENT(AIController)         \
+    COMPONENT(Glyph)                \
+    COMPONENT(Religious)            \
+    COMPONENT(SeeInvisible)         \
+    COMPONENT(Renderable)           \
+    COMPONENT(Map)                  \
+    COMPONENT(InitiativeData)       \
+    COMPONENT(MenuNetWrapper)       \
+    COMPONENT(GenStatusEffect)      \
     COMPONENT(EntityCallbackEffect) \
-    COMPONENT(WeaponStats) \
+    COMPONENT(WeaponStats)          \
     COMPONENT(WieldDescriptor)
 
 #define COMPONENT(c) extern ECS_COMPONENT_DECLARE(c);
 COMPONENTS
 #undef COMPONENT
 
-#define TAGS            \
-    TAG(Invisible)      \
-    TAG(MyTurn)         \
-    TAG(Targets)        \
-    TAG(HasQuaffEffect) \
-    TAG(InInventory)    \
-    TAG(Poison)         \
-    TAG(Dead)           \
-    TAG(ActionFromSocket)
+#define TAGS              \
+    TAG(Invisible)        \
+    TAG(MyTurn)           \
+    TAG(Targets)          \
+    TAG(HasQuaffEffect)   \
+    TAG(InInventory)      \
+    TAG(Poison)           \
+    TAG(Dead)             \
+    TAG(ActionFromSocket) \
+    TAG(Fiery)            \
+    TAG(OnFire)
 
 typedef int wchar_t;
 typedef struct Religion Religion;
@@ -122,25 +124,34 @@ typedef struct MenuNetWrapper {
     arena a;
 } MenuNetWrapper;
 
-typedef struct TimedStatusEffect {
-    // How many turns the effect is active for
-    int turns;
+typedef enum { SE_Probability, SE_Timed } StatusType;
+typedef struct StatusParam {
+    StatusType type;
+    union {
+        int turns;
+        int stop_perc;
+    } p;
+} StatusParam;
+
+typedef struct GenStatusEffect {
+    // Generic parameter: num turns, prob to stop, etc
+    StatusParam param;
     // The status effect component to add (must have a default constructor)
     ecs_id_t effect_comp;
     // The target of the effect. Set when timer entity is created
     ecs_entity_t target;
-} TimedStatusEffect;
+} GenStatusEffect;
 
 typedef struct EntityCallbackEffect {
     void (*f)(ecs_world_t *world, ecs_entity_t e, union cb_arg arg);
     union cb_arg arg;
 } EntityCallbackEffect;
 
-typedef struct WeaponStats {
+typedef struct DamageRoll {
     uint8_t n;
     uint8_t sides;
     uint8_t offset;
-} WeaponStats;
+} WeaponStats, DamageRoll;
 
 typedef struct WieldDescriptor {
     ecs_entity_t main;

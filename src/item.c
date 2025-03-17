@@ -4,15 +4,28 @@
 #include "component.h"
 #include "prefab.h"
 #include "ds.h"
+#include "log.h"
 
 #include "flecs.h"
 
 // TODO: Consider making this a prefab
 ecs_entity_t mjolnir;
+ecs_entity_t brisingr;
 
 void item_init(ecs_world_t *world)
 {
-    mjolnir = ecs_insert(world, { ecs_isa(WeaponItem), NULL }, ecs_value(Name, { L"Mjolnir" }), ecs_value(WeaponStats, { 4, 6, 4 }));
+    mjolnir = ecs_insert(world,
+            { ecs_isa(WeaponItem), NULL },
+            ecs_value(Name, { L"Mjolnir" }),
+            ecs_value(WeaponStats, { 4, 6, 4 })
+    );
+
+    brisingr = ecs_insert(world,
+            { ecs_isa(WeaponItem), NULL },
+            ecs_value(Name, { L"Brisingr" }),
+            ecs_value(WeaponStats, { 1, 12, 4 }),
+            { Fiery, NULL }
+    );
 }
 
 // TODO: Revisit API of this and pickup_item w.r.t passing map as an argument
@@ -61,4 +74,19 @@ void health_potion_cb(ecs_world_t *world, ecs_entity_t e, union cb_arg arg)
 {
     Health *health = ecs_get_mut(world, e, Health);
     health->val = health->val + (int) arg.c > health->total ? health->total : health->val + (int) arg.c;
+}
+
+void apply_weapon_effects(ecs_world_t *world, ecs_entity_t w, ecs_entity_t, ecs_entity_t t, DamageRoll *)
+{
+    if (ecs_has(world, w, Fiery) && ecs_has(world, t, Health)) {
+        ecs_entity(world, {
+                .parent = t,
+                .set = ecs_values(
+                        ecs_value(GenStatusEffect, { { SE_Probability, .p.stop_perc=33 }, OnFire, t }),
+                        ecs_value(InitiativeData, { 0, 10 }),
+                        { ecs_pair(Targets, t), NULL }),
+                .add = ecs_ids(OnFire) // Use add to invoke constructor
+        });
+        log_msg(&g_game_log, L"%S is on fire!", GET_NAME_COMP(world, t));
+    }
 }

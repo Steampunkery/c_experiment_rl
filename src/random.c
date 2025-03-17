@@ -17,3 +17,8 @@ int roll(int n, int sides)
 
     return total;
 }
+
+bool perc_roll(int dc)
+{
+    return randint(1, 100) <= dc;
+}

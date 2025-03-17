@@ -64,15 +64,15 @@ void Quaff(ecs_world_t *world, ecs_entity_t e, QuaffAction *qa)
     inv_delete(world, inv, e, quaff_e); // Note, this implies that potions _must_ be present in inventory when quaffed
 
     void *effect_type;
-    if (HAS_QUAFF_EFFECT(TimedStatusEffect)) {
-        TimedStatusEffect *tse = effect_type;
+    if (HAS_QUAFF_EFFECT(GenStatusEffect)) {
+        GenStatusEffect *tse = effect_type;
         tse->target= e;
 
         // ChildOf to do automatic deletion
         ecs_entity(world, {
                 .parent = tse->target,
                 .set = ecs_values(
-                        ecs_value_ptr(TimedStatusEffect, effect_type),
+                        ecs_value_ptr(GenStatusEffect, effect_type),
                         ecs_value(InitiativeData, { 0, 10 }),
                         { ecs_pair(Targets, tse->target), NULL }),
                 .add = ecs_ids(tse->effect_comp) // Use add to invoke constructor
@@ -100,15 +100,18 @@ void Attack(ecs_world_t *world, ecs_entity_t e, AttackAction *aa)
     Health *target_health = ecs_get_mut(world, aa->target, Health);
 
     // TODO: Calculate damage based on weapon, strength, defence, etc
-    int val = ws ? roll(ws->n, ws->sides) + ws->offset : roll(1, 4) + 1;
-    log_msg(&g_game_log, L"%S hits %S for %d dmg", GET_NAME_COMP(world, e), GET_NAME_COMP(world, aa->target), val);
+    DamageRoll dr = (DamageRoll) { 1, 4, 1 };
+    if (ws) {
+        dr = (DamageRoll) { ws->n, ws->sides, ws->offset };
+        apply_weapon_effects(world, wd->main, e, aa->target, &dr);
+    }
+
+    int val = roll(dr.n, dr.sides) + dr.offset;
     target_health->val -= val;
 
-    if (target_health->val <= 0)
-        ecs_add(world, aa->target, Dead);
+    log_msg(&g_game_log, L"%S hits %S for %d dmg", GET_NAME_COMP(world, e), GET_NAME_COMP(world, aa->target), val);
 
     init->points -= 100;
-
 }
 
 void Prayer(ecs_world_t *world, ecs_entity_t e, void *)

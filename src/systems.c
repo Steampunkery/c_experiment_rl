@@ -1,9 +1,10 @@
 #include "systems.h"
 
 #include "component.h"
-#include "map.h"
-#include "render.h"
 #include "log.h"
+#include "map.h"
+#include "random.h"
+#include "render.h"
 #include "religion.h"
 #include "item.h"
 
@@ -85,21 +86,38 @@ void ApplyPoison(ecs_iter_t *it)
 {
     Health *health = ecs_field(it, Health, 1);
 
-    for (int i = 0; i < it->count; i++) {
+    for (int i = 0; i < it->count; i++)
         health->val -= 1;
-        log_msg(&g_debug_log, L"Poisoned: %d", health->val);
-    }
 }
 
-void StatusEffectTimer(ecs_iter_t *it)
+// TODO: Burn stuff
+void ApplyOnFire(ecs_iter_t *it)
 {
-    TimedStatusEffect *tse = ecs_field(it, TimedStatusEffect, 0);
+    Health *health = ecs_field(it, Health, 1);
+
+    for (int i = 0; i < it->count; i++)
+        health->val -= roll(1, 4);
+}
+
+// For status effect timers, treat param as turns until effect is done.
+void ProcessStatusEffects(ecs_iter_t *it)
+{
+    GenStatusEffect *gse = ecs_field(it, GenStatusEffect, 0);
     InitiativeData *init = ecs_field(it, InitiativeData, 1);
 
     for (int i = 0; i < it->count; i++) {
         init[i].points -= 100;
-        if (--tse[i].turns > 0)
-            continue;
+
+        switch (gse->param.type) {
+        case SE_Timed:
+            if (--gse[i].param.p.turns > 0)
+                continue;
+            break;
+        case SE_Probability:
+            if (!perc_roll(gse[i].param.p.stop_perc))
+                continue;
+            break;
+        }
 
         ecs_delete(it->world, it->entities[i]);
     }
@@ -107,12 +125,15 @@ void StatusEffectTimer(ecs_iter_t *it)
 
 void DeathCleanup(ecs_iter_t *it)
 {
-    // field 0 is Dead
+    Health *health = ecs_field(it, Health, 0);
     Position *pos = ecs_field(it, Position, 1);
     Inventory *inv = ecs_field(it, Inventory, 2);
 
     Map *map = ecs_singleton_get_mut(it->world, Map);
     for (int i = 0; i < it->count; i++) {
+        if (health[i].val > 0)
+            continue;
+
         map_remove_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
 
         if (inv)

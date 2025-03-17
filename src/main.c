@@ -131,7 +131,8 @@ int main(int argc, char **argv)
             ecs_run(world, ecs_id(AI), 0.0, NULL);
 
             ecs_run(world, ecs_id(ApplyPoison), 0.0, NULL);
-            ecs_run(world, ecs_id(StatusEffectTimer), 0.0, NULL);
+            ecs_run(world, ecs_id(ApplyOnFire), 0.0, NULL);
+            ecs_run(world, ecs_id(ProcessStatusEffects), 0.0, NULL);
 
             ecs_run(world, ecs_id(DeathCleanup), 0.0, NULL);
 
@@ -263,8 +264,8 @@ void temp_map_init(ecs_world_t *world, Map *map)
 
     ecs_entity_t poison_potion1 = ecs_insert(world,
             { ecs_isa(QuaffableItem), NULL },
-            ecs_value_pair_2nd(HasQuaffEffect, TimedStatusEffect, {
-                .turns = 10,
+            ecs_value_pair_2nd(HasQuaffEffect, GenStatusEffect, {
+                .param = { SE_Timed, .p.turns = 10 },
                 .effect_comp = ecs_id(Poison)
             }),
             ecs_value(Name, { L"Potion of Poison" })
@@ -273,8 +274,8 @@ void temp_map_init(ecs_world_t *world, Map *map)
 
     ecs_entity_t poison_potion2 = ecs_insert(world,
             { ecs_isa(QuaffableItem), NULL },
-            ecs_value_pair_2nd(HasQuaffEffect, TimedStatusEffect, {
-                .turns = 10,
+            ecs_value_pair_2nd(HasQuaffEffect, GenStatusEffect, {
+                .param = { SE_Timed, .p.turns = 10 },
                 .effect_comp = ecs_id(Poison)
             }),
             ecs_value(Name, { L"Potion of Poison" })
