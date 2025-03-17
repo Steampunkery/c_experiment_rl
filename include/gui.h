@@ -1,7 +1,6 @@
 #pragma once
 #include "arena.h"
 
-#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct ecs_world_t ecs_world_t;

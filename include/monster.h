@@ -1,5 +1,4 @@
 #pragma once
-#include <stdbool.h>
 
 typedef struct MovementAction MovementAction;
 typedef struct ecs_world_t ecs_world_t;

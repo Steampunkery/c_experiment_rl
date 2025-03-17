@@ -1,7 +1,6 @@
 #pragma once
 #include "rogue.h"
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 

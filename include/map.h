@@ -1,8 +1,6 @@
 #pragma once
 #include "dijkstra.h"
 
-#include <stdbool.h>
-
 #define NUM_DIJKSTRA_MAPS 2
 
 typedef struct entity_vec entity_vec;

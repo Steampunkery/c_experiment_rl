@@ -45,7 +45,7 @@ OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS        := $(OBJS:.o=.d)
 
 CC          := gcc
-CFLAGS		:= -g3 -Wall -Wextra -Werror -std=gnu11 -D_GNU_SOURCE
+CFLAGS		:= -g3 -Wall -Wextra -Werror -std=gnu2x -D_GNU_SOURCE
 CFLAGS      += $(addprefix -I,$(INCS)) -MMD -MP
 LDFLAGS     := $(addprefix -L,$(dir $(LIBS_TARGET)))
 LDFLAGS     += -fsanitize=undefined -fno-sanitize-recover
