@@ -9,6 +9,10 @@ COMPONENTS
 ECS_ON_ADD(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
 ECS_ON_SET(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
 
+#define META_COMP(c, ...) ECS_META_IMPL_CALL(ECS_STRUCT_, IMPL, c, #__VA_ARGS__)
+META_COMPS
+#undef META_COMP
+
 #define TAG(t) ECS_TAG_DECLARE(t);
 TAGS
 #undef TAG
@@ -19,6 +23,10 @@ void register_components(ecs_world_t *world)
 COMPONENTS
 #undef COMPONENT
     ecs_set_hooks(world, InitiativeData, { .on_set = ecs_on_set(InitiativeData), .on_add = ecs_on_add(InitiativeData) });
+
+#define META_COMP(c, ...) ECS_META_COMPONENT(world, c);
+META_COMPS
+#undef META_COMP
 
 #define TAG(t) ECS_TAG_DEFINE(world, t);
 TAGS

@@ -6,6 +6,8 @@
 #define FLECS_SCRIPT
 #define FLECS_LOG
 #define FLECS_DEBUG
+#define FLECS_META
+#define FLECS_JSON
 
 /**
  * @file flecs.h
@@ -16258,7 +16260,7 @@ int ecs_meta_from_desc(
 
 /* ECS_STRUCT implementation */
 #define ECS_STRUCT_TYPE(name, ...)\
-    typedef struct __VA_ARGS__ name
+    typedef struct name __VA_ARGS__ name
 
 #define ECS_STRUCT_ECS_META_IMPL ECS_STRUCT_IMPL
 

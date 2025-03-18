@@ -11,11 +11,9 @@
 
 #define COMPONENTS                  \
     COMPONENT(Name)                 \
-    COMPONENT(Position)             \
     COMPONENT(Weight)               \
     COMPONENT(Value)                \
     COMPONENT(Satiation)            \
-    COMPONENT(Stack)                \
     COMPONENT(Health)               \
     COMPONENT(Inventory)            \
     COMPONENT(AIController)         \
@@ -34,6 +32,38 @@
 #define COMPONENT(c) extern ECS_COMPONENT_DECLARE(c);
 COMPONENTS
 #undef COMPONENT
+
+#define META_COMPS          \
+    META_COMP(Position, {   \
+        int32_t x;          \
+        int32_t y;          \
+    });                     \
+    META_COMP(Stack, {      \
+        int32_t val;        \
+    });                     \
+    META_COMP(Weight, {     \
+        float val;          \
+    });                     \
+    META_COMP(Value, {      \
+        float val;          \
+    });                     \
+    META_COMP(Satiation, {  \
+        float val;          \
+    });                     \
+    META_COMP(Glyph, {      \
+        uint32_t c;         \
+    });                     \
+    META_COMP(Renderable, { \
+        bool should_render; \
+    });
+
+static_assert(sizeof(uint32_t) == sizeof(wchar_t));
+
+#define ECS_META_IMPL EXTERN
+#define META_COMP ECS_STRUCT
+META_COMPS
+#undef META_COMP
+#undef ECS_META_IMPL
 
 #define TAGS              \
     TAG(Invisible)        \
@@ -59,18 +89,6 @@ typedef struct Name {
     wchar_t const *s;
 } Name;
 
-typedef struct Position {
-    int x, y;
-} Position;
-
-typedef struct Weight {
-    float val;
-} Weight, Value, Satiation;
-
-typedef struct Stack {
-    int val;
-} Stack;
-
 typedef struct Health {
     int total;
     int val;
@@ -82,10 +100,6 @@ typedef struct Inventory {
     int end;
     ecs_entity_t items[INVENTORY_MAX];
 } Inventory;
-
-typedef struct Glyph {
-    wchar_t c;
-} Glyph;
 
 typedef struct Actor {
     int (*act)(ecs_world_t *world, ecs_entity_t *e);
@@ -104,10 +118,6 @@ typedef struct Religious {
 typedef struct SeeInvisible {
     char dummy;
 } SeeInvisible;
-
-typedef struct Renderable {
-    bool should_render;
-} Renderable;
 
 typedef struct InitiativeData {
     int points;

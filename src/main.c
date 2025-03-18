@@ -68,6 +68,10 @@ int main(int argc, char **argv)
     log_msg(&g_debug_log, L"Debug Test Message");
 
     world = ecs_init();
+    ecs_log_enable_colors(false);
+    ecs_os_api_t os_api = ecs_os_get_api();
+    os_api.log_out_ = fopen("ecs.log", "w");
+    ecs_os_set_api(&os_api);
 
     register_components(world);
     register_systems(world);
@@ -224,6 +228,9 @@ void temp_map_init(ecs_world_t *world, Map *map)
 
     ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold1, 1, 1);
+    char *json = ecs_entity_to_json(world, gold1, NULL);
+    ecs_log(-1, "%s", json);
+    ecs_os_free(json);
 
     ecs_entity_t gold2 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
     place_item(world, gold2, map->cols - 2, 1);
