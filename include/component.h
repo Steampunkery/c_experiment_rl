@@ -2,6 +2,7 @@
 #include "flecs.h"
 #include "rogue.h"
 #include "arena.h"
+#include "serialize.h"
 
 #include "rlsmenu.h"
 #include "sockui.h"
@@ -55,6 +56,9 @@ COMPONENTS
     });                     \
     META_COMP(Renderable, { \
         bool should_render; \
+    });                     \
+    META_COMP(Name, {       \
+        wstr s;             \
     });
 
 static_assert(sizeof(uint32_t) == sizeof(wchar_t));
@@ -84,10 +88,6 @@ typedef struct FrameData FrameData;
 #define TAG(t) extern ECS_TAG_DECLARE(t);
 TAGS
 #undef TAG
-
-typedef struct Name {
-    wchar_t const *s;
-} Name;
 
 typedef struct Health {
     int total;

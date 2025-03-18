@@ -3,11 +3,16 @@
 #include "map.h"
 #include "gui.h"
 
+#include <stdlib.h>
+#include <wchar.h>
+
 #define COMPONENT(c) ECS_COMPONENT_DECLARE(c);
 COMPONENTS
 #undef COMPONENT
 ECS_ON_ADD(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
 ECS_ON_SET(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
+ECS_DTOR(Name, ptr, { free((void *) ptr->s); });
+ECS_COPY(Name, dst, src, { dst->s = wcsdup(src->s); });
 
 #define META_COMP(c, ...) ECS_META_IMPL_CALL(ECS_STRUCT_, IMPL, c, #__VA_ARGS__)
 META_COMPS
@@ -27,6 +32,7 @@ COMPONENTS
 #define META_COMP(c, ...) ECS_META_COMPONENT(world, c);
 META_COMPS
 #undef META_COMP
+    ecs_set_hooks(world, Name, { .copy = ecs_copy(Name), .copy_ctor = ecs_copy(Name), .dtor = ecs_dtor(Name) });
 
 #define TAG(t) ECS_TAG_DEFINE(world, t);
 TAGS

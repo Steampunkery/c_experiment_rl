@@ -14,6 +14,7 @@
 #include "prefab.h"
 #include "item.h"
 #include "arena.h"
+#include "serialize.h"
 
 #include "rlsmenu.h"
 #include "flecs.h"
@@ -43,7 +44,7 @@ void try_endwin(int)
 // TODO: Refactor this while damn file
 int main(int argc, char **argv)
 {
-    /*for (volatile int i = 0; i == 0;);*/
+    for (volatile int i = 0; i == 0;);
 
     srand(time(NULL));
 
@@ -73,6 +74,8 @@ int main(int argc, char **argv)
     os_api.log_out_ = fopen("ecs.log", "w");
     ecs_os_set_api(&os_api);
 
+    // Note that serializers must be registered before components
+    register_serialize(world);
     register_components(world);
     register_systems(world);
     register_observers(world);
