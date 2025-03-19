@@ -23,7 +23,7 @@ typedef struct AbilityBoon {
 
 typedef struct ItemBoon {
     Boon super;
-    ecs_entity_t *item;
+    char *item_name;
 } ItemBoon;
 
 typedef struct Religion {

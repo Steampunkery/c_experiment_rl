@@ -1,6 +1,10 @@
 // Comment out this line when using as DLL
 #define flecs_STATIC
 
+#define FLECS_REST
+#define FLECS_STATS
+#define FLECS_PIPELINE
+
 #define FLECS_CUSTOM_BUILD
 #define FLECS_SYSTEM
 #define FLECS_SCRIPT

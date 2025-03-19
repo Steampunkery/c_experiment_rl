@@ -110,11 +110,11 @@ void ProcessStatusEffects(ecs_iter_t *it)
 
         switch (gse->param.type) {
         case SE_Timed:
-            if (--gse[i].param.p.turns > 0)
+            if (--gse[i].param.arg > 0)
                 continue;
             break;
         case SE_Probability:
-            if (!perc_roll(gse[i].param.p.stop_perc))
+            if (!perc_roll(gse[i].param.arg))
                 continue;
             break;
         }

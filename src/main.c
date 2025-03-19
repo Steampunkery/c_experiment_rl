@@ -44,7 +44,7 @@ void try_endwin(int)
 // TODO: Refactor this while damn file
 int main(int argc, char **argv)
 {
-    for (volatile int i = 0; i == 0;);
+    /*for (volatile int i = 0; i == 0;);*/
 
     srand(time(NULL));
 
@@ -74,12 +74,14 @@ int main(int argc, char **argv)
     os_api.log_out_ = fopen("ecs.log", "w");
     ecs_os_set_api(&os_api);
 
-    // Note that serializers must be registered before components
-    register_serialize(world);
+    /*ECS_IMPORT(world, FlecsStats);*/
+    /*ecs_singleton_set(world, EcsRest, {0});*/
+
     register_components(world);
     register_systems(world);
     register_observers(world);
     register_prefabs(world);
+    register_serialize(world);
 
     dijkstra_init(world);
     Map *map = ecs_singleton_ensure(world, Map);
@@ -113,6 +115,7 @@ int main(int argc, char **argv)
     // TODO!: Make these into a struct
     KeyInfo key = { 0 };
     while (true) {
+        /*ecs_progress(world, 0.0);*/
         switch (vars.state) {
         case PreTurn:
             ecs_run(world, initiative, 0.0, NULL);
@@ -123,6 +126,7 @@ int main(int argc, char **argv)
 
             // TODO: Find a better way to handle the player's turn elegantly
             do {
+                /*ecs_progress(world, 0.0);*/
                 handle_socket_menus();
                 if (ecs_is_enabled(world, g_player_id, ActionFromSocket)) {
                     ecs_enable_component(world, g_player_id, ActionFromSocket, false);
@@ -229,78 +233,22 @@ void temp_map_init(ecs_world_t *world, Map *map)
             ecs_value(AIController, { pet_ai, NULL }));
     map_place_entity(world, map, e, 10, 20);
 
-    ecs_entity_t gold1 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
-    place_item(world, gold1, 1, 1);
-    char *json = ecs_entity_to_json(world, gold1, NULL);
-    ecs_log(-1, "%s", json);
-    ecs_os_free(json);
+    ecs_world_from_json_file(world, "items.json", NULL);
+    ecs_query_t *q = ecs_query(world, {
+            .terms = {
+                { .id = ecs_isa(Item) },
+                { .id = ecs_id(Position) }
+            }
+    });
 
-    ecs_entity_t gold2 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
-    place_item(world, gold2, map->cols - 2, 1);
+    ecs_iter_t it = ecs_query_iter(world, q);
+    while (ecs_query_next(&it)) {
+        Position const *pos = ecs_field(&it, Position, 1);
+        for (int i = 0; i < it.count; i++)
+            place_item(world, it.entities[i], pos[i].x, pos[i].y);
+    }
 
-    ecs_entity_t gold3 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
-    place_item(world, gold3, map->cols - 2, map->rows - 2);
-
-    ecs_entity_t gold4 = ecs_insert(world, { ecs_isa(GoldItem), NULL }, ecs_value(Stack, { 300 }));
-    place_item(world, gold4, 1, map->rows - 2);
-
-    ecs_entity_t item1 = ecs_insert(world,
-            { ecs_isa(FoodItem), NULL },
-            ecs_value(Satiation, { 42 }),
-            ecs_value(Name, { L"Apple" })
-    );
-    place_item(world, item1, 18, 18);
-
-    ecs_entity_t item2 = ecs_insert(world,
-            { ecs_isa(FoodItem), NULL },
-            ecs_value(Satiation, { 42 }),
-            ecs_value(Name, { L"Orange" })
-    );
-    place_item(world, item2, 18, 19);
-
-    ecs_entity_t item3 = ecs_insert(world,
-            { ecs_isa(FoodItem), NULL },
-            ecs_value(Satiation, { 42 }),
-            ecs_value(Name, { L"Banana" })
-    );
-    place_item(world, item3, 18, 20);
-
-    ecs_entity_t item4 = ecs_insert(world,
-            { ecs_isa(FoodItem), NULL },
-            ecs_value(Satiation, { 42 }),
-            ecs_value(Name, { L"Kiwi" })
-    );
-    place_item(world, item4, 18, 21);
-
-    ecs_entity_t poison_potion1 = ecs_insert(world,
-            { ecs_isa(QuaffableItem), NULL },
-            ecs_value_pair_2nd(HasQuaffEffect, GenStatusEffect, {
-                .param = { SE_Timed, .p.turns = 10 },
-                .effect_comp = ecs_id(Poison)
-            }),
-            ecs_value(Name, { L"Potion of Poison" })
-    );
-    place_item(world, poison_potion1, 18, 23);
-
-    ecs_entity_t poison_potion2 = ecs_insert(world,
-            { ecs_isa(QuaffableItem), NULL },
-            ecs_value_pair_2nd(HasQuaffEffect, GenStatusEffect, {
-                .param = { SE_Timed, .p.turns = 10 },
-                .effect_comp = ecs_id(Poison)
-            }),
-            ecs_value(Name, { L"Potion of Poison" })
-    );
-    place_item(world, poison_potion2, 18, 24);
-
-    ecs_entity_t health_potion = ecs_insert(world,
-            { ecs_isa(QuaffableItem), NULL },
-            ecs_value_pair_2nd(HasQuaffEffect, EntityCallbackEffect, {
-                .f = health_potion_cb,
-                .arg.c = 20
-            }),
-            ecs_value(Name, { L"Potion of Health" })
-    );
-    place_item(world, health_potion, 18, 25);
+    ecs_query_fini(q);
 }
 
 void render_and_sock_menus(GameVars *vars)

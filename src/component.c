@@ -11,10 +11,26 @@ COMPONENTS
 #undef COMPONENT
 ECS_ON_ADD(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
 ECS_ON_SET(InitiativeData, ptr, { ecs_add(_it->world, entity, MyTurn); });
-ECS_DTOR(Name, ptr, { free((void *) ptr->s); });
-ECS_COPY(Name, dst, src, { dst->s = wcsdup(src->s); });
+ECS_CTOR(Name, ptr, {
+    ptr->s = NULL;
+    ptr->count = 0;
+});
+ECS_DTOR(Name, ptr, {
+    free((void *) ptr->s);
+    ptr->count = 0;
+});
+ECS_COPY(Name, dst, src, {
+    dst->s = wcsdup(src->s);
+    dst->count = src->count;
+});
+ECS_MOVE(Name, dst, src, {
+    dst->s = src->s;
+    dst->count = src->count;
+    src->s = NULL;
+    src->count = 0;
+});
 
-#define META_COMP(c, ...) ECS_META_IMPL_CALL(ECS_STRUCT_, IMPL, c, #__VA_ARGS__)
+#define META_COMP(c, t, ...) ECS_META_IMPL_CALL(ECS_##t##_, IMPL, c, #__VA_ARGS__)
 META_COMPS
 #undef META_COMP
 
@@ -22,20 +38,27 @@ META_COMPS
 TAGS
 #undef TAG
 
-void register_components(ecs_world_t *world)
+void
+register_components(ecs_world_t *world)
 {
 #define COMPONENT(c) ECS_COMPONENT_DEFINE(world, c);
-COMPONENTS
+    COMPONENTS
 #undef COMPONENT
-    ecs_set_hooks(world, InitiativeData, { .on_set = ecs_on_set(InitiativeData), .on_add = ecs_on_add(InitiativeData) });
+    ecs_set_hooks(world, InitiativeData,
+                  { .on_set = ecs_on_set(InitiativeData), .on_add = ecs_on_add(InitiativeData) });
 
 #define META_COMP(c, ...) ECS_META_COMPONENT(world, c);
-META_COMPS
+    META_COMPS
 #undef META_COMP
-    ecs_set_hooks(world, Name, { .copy = ecs_copy(Name), .copy_ctor = ecs_copy(Name), .dtor = ecs_dtor(Name) });
+    ecs_set_hooks(world, Name,
+                  { .ctor = ecs_ctor(Name),
+                    .move = ecs_move(Name),
+                    .copy = ecs_copy(Name),
+                    .copy_ctor = ecs_copy(Name),
+                    .dtor = ecs_dtor(Name) });
 
 #define TAG(t) ECS_TAG_DEFINE(world, t);
-TAGS
+    TAGS
 #undef TAG
     ecs_add_id(world, MyTurn, EcsCanToggle);
     // NOTE: Union relationships cannot have data

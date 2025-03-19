@@ -29,7 +29,7 @@ ItemBoon IB_Mjolnir = {
         .name = L"The Warhammer Mjolnir",
         .type = BOONTYPE_ITEM,
     },
-    .item = &mjolnir,
+    .item_name = "mjolnir"
 };
 
 ItemBoon IB_Brisingr = {
@@ -37,7 +37,7 @@ ItemBoon IB_Brisingr = {
         .name = L"The Flaming Sword Brisingr",
         .type = BOONTYPE_ITEM,
     },
-    .item = &brisingr,
+    .item_name = "brisingr"
 };
 
 // Add a follower to a given religion
@@ -57,8 +57,8 @@ void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e)
         bestow_ability(world, (AbilityBoon *) boon, e);
         break;
     case BOONTYPE_ITEM:
-        const Position *pos = ecs_get(world, e, Position);
-        if (!pos) break;
+        Position const *pos = ecs_get(world, e, Position);
+        assert(pos);
         bestow_item(world, (ItemBoon *) boon, pos);
         break;
     }
@@ -73,11 +73,13 @@ void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e)
 
 void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e)
 {
-    const ecs_type_info_t *info = ecs_get_type_info(world, *boon->ability_id);
+    ecs_type_info_t const *info = ecs_get_type_info(world, *boon->ability_id);
     ecs_set_id(world, e, *boon->ability_id, info->size, boon->ability_data);
 }
 
-void bestow_item(ecs_world_t *world, ItemBoon *boon, const Position *pos)
+void bestow_item(ecs_world_t *world, ItemBoon *boon, Position const *pos)
 {
-    place_item(world, *boon->item, pos->x, pos->y);
+    ecs_entity_t item = ecs_lookup(world, boon->item_name);
+    assert(item);
+    place_item(world, item, pos->x, pos->y);
 }

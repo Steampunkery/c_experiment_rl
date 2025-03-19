@@ -79,7 +79,7 @@ void Quaff(ecs_world_t *world, ecs_entity_t e, QuaffAction *qa)
         });
     } else if (HAS_QUAFF_EFFECT(EntityCallbackEffect)) {
         EntityCallbackEffect *ece = effect_type;
-        ece->f(world, e, ece->arg);
+        ec_to_function[ece->ec](world, e, ece->arg);
     } else if (ecs_has_pair(world, quaff_e, HasQuaffEffect, EcsWildcard)) {
         assert(!"Unsupported quaff effect");
     }
