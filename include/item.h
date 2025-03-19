@@ -17,7 +17,9 @@ ecs_entity_t first_prefab_at_pos(ecs_world_t *world, Map const *map, ecs_entity_
 void health_potion_cb(ecs_world_t *world, ecs_entity_t e, uint64_t arg);
 void apply_weapon_effects(ecs_world_t *world, ecs_entity_t w, ecs_entity_t, ecs_entity_t t, DamageRoll *);
 
-typedef void (*entity_callback)(ecs_world_t *world, ecs_entity_t e, uint64_t arg);
-
-extern entity_callback ec_to_function[];
+/* Prototype and vector of callbacks. ec_to_function is indexed by the
+ * EntityCallbackEffect enum. This is so that we can serialize the callback
+ * index*/
+typedef void (*entity_effect_cb)(ecs_world_t *world, ecs_entity_t e, uint64_t arg);
+extern entity_effect_cb ec_to_function[];
 

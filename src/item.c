@@ -7,7 +7,7 @@
 
 #include "flecs.h"
 
-entity_callback ec_to_function[] = { health_potion_cb };
+entity_effect_cb ec_to_function[EC_MAX] = { health_potion_cb };
 
 void item_init(ecs_world_t *world)
 {
@@ -56,6 +56,7 @@ ecs_entity_t first_prefab_at_pos(ecs_world_t *world, Map const *map, ecs_entity_
     return first;
 }
 
+// Arg is the amount of healing provided
 void health_potion_cb(ecs_world_t *world, ecs_entity_t e, uint64_t arg)
 {
     Health *health = ecs_get_mut(world, e, Health);
@@ -68,6 +69,7 @@ void apply_weapon_effects(ecs_world_t *world, ecs_entity_t w, ecs_entity_t, ecs_
         ecs_entity(world, {
                 .parent = t,
                 .set = ecs_values(
+                        // TOOD: Don't hardcode 33% probability
                         ecs_value(GenStatusEffect, { { SE_Probability, .arg = 33 }, OnFire, t }),
                         ecs_value(InitiativeData, { 0, 10 }),
                         { ecs_pair(Targets, t), NULL }),

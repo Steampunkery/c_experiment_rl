@@ -2,7 +2,6 @@
 #include "flecs.h"
 #include "rogue.h"
 #include "arena.h"
-#include "serialize.h"
 
 #include "rlsmenu.h"
 #include "sockui.h"
@@ -57,7 +56,8 @@ COMPONENTS
          * Set when timer entity is created */                 \
         ecs_entity_t target;                                   \
     });                                                        \
-    META_COMP(EffectCallback, ENUM, { EC_HEALTH_POTION });     \
+    META_COMP(EffectCallback, ENUM, { EC_HEALTH_POTION,        \
+            EC_MAX });                                         \
     META_COMP(EntityCallbackEffect, STRUCT, {                  \
         EffectCallback ec;                                     \
         uint64_t arg;                                          \
@@ -69,6 +69,7 @@ META_COMPS
 #undef META_COMP
 #undef ECS_META_IMPL
 
+// Typedefs for alternate names of meta components here
 typedef struct WeaponStats DamageRoll;
 
 #define TAGS              \
@@ -96,8 +97,11 @@ typedef struct Health {
     int val;
 } Health;
 
+/* Include count for easy (de)serialization. TODO: Consider replacing this with
+ * a real wide string type */
 typedef struct Name {
     wchar_t *s;
+    // Does not include null terminator
     int32_t count;
 } Name;
 

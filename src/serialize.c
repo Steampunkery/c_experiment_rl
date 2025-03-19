@@ -5,6 +5,7 @@
 #include <wchar.h>
 #include <stdlib.h>
 
+/* We're treating wchar_t * as a vector of i32, so enforce this */
 static_assert(sizeof(wchar_t) == sizeof(ecs_i32_t));
 
 static size_t Name_count(void const *ptr)
@@ -38,6 +39,7 @@ static void Name_resize(void *ptr, size_t size)
         return;
     }
 
+    // Always leave space for the null char
     data->s = reallocarray(data->s, sizeof(int32_t), size+1);
     data->s[size] = L'\0';
 }

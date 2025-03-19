@@ -110,10 +110,13 @@ void ProcessStatusEffects(ecs_iter_t *it)
 
         switch (gse->param.type) {
         case SE_Timed:
+            // Here, param.arg is number of turns until timeout
             if (--gse[i].param.arg > 0)
                 continue;
             break;
         case SE_Probability:
+            /* Here, param.arg is in [1, 100], and is the probability that the
+             * effect stops */
             if (!perc_roll(gse[i].param.arg))
                 continue;
             break;
