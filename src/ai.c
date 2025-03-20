@@ -12,20 +12,28 @@
 
 #define do_wait_action(e) Move(world, e, &(MovementAction) { 0, 0, 100 });
 
+ai_cb aic_to_function[AIC_MAX] = {
+    [AIC_LEFT_WALKER] = left_walker,
+    [AIC_NOTHING] = do_nothing,
+    [AIC_GREEDY] = greedy_ai,
+    [AIC_PET] = pet_ai,
+    [AIC_ENEMY] = enemy_ai
+};
+
 static bool fuzzy_downhill(ecs_world_t *world, ecs_entity_t e, DijkstraMap const *dm, Map const *map, Position const *pos);
 
-void left_walker(ecs_world_t *world, ecs_entity_t e, void *)
+void left_walker(ecs_world_t *world, ecs_entity_t e)
 {
     if (!try_move_entity(world, e, &(MovementAction) { -1, 0, 100 }))
         do_wait_action(e);
 }
 
-void do_nothing(ecs_world_t *world, ecs_entity_t e, void *)
+void do_nothing(ecs_world_t *world, ecs_entity_t e)
 {
     do_wait_action(e);
 }
 
-void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *)
+void greedy_ai(ecs_world_t *world, ecs_entity_t e)
 {
     Map const *map = ecs_singleton_get(world, Map);
     Position const *pos = ecs_get(world, e, Position);
@@ -45,7 +53,7 @@ void greedy_ai(ecs_world_t *world, ecs_entity_t e, void *)
         do_wait_action(e);
 }
 
-void pet_ai(ecs_world_t *world, ecs_entity_t e, void *)
+void pet_ai(ecs_world_t *world, ecs_entity_t e)
 {
     Map const *map = ecs_singleton_get(world, Map);
     Position const *pos = ecs_get(world, e, Position);
@@ -65,9 +73,9 @@ void pet_ai(ecs_world_t *world, ecs_entity_t e, void *)
         do_wait_action(e);
 }
 
-void enemy_ai(ecs_world_t *world, ecs_entity_t e, void *arg)
+void enemy_ai(ecs_world_t *world, ecs_entity_t e)
 {
-    EnemyAIParams *params = arg;
+    EnemyAIParams const *params = ecs_get(world, e, EnemyAIParams);
 
     Map const *map = ecs_singleton_get(world, Map);
     DijkstraMap const *dm = &map->dijkstra_maps[DM_ORDER_PLAYER].dm;

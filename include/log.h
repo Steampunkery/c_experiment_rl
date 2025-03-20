@@ -8,7 +8,7 @@
 #define MAX_LOG_MSG_LEN MIN_TERM_COLS
 
 typedef struct Logger {
-    MenuChangeCounter data_id;
+    uint32_t data_id;
     uint8_t pending_msgs;
     size_t head;
     wchar_t msgs[MAX_LOG_MSGS][MAX_LOG_MSG_LEN];

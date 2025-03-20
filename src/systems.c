@@ -1,5 +1,6 @@
 #include "systems.h"
 
+#include "ai.h"
 #include "component.h"
 #include "log.h"
 #include "map.h"
@@ -33,7 +34,7 @@ void register_systems(ecs_world_t *world)
         .query.terms = {
             { .id = ecs_id(Position) },
             { .id = ecs_id(Glyph) },
-            { .id = ecs_id(Renderable) },
+            { .id = Renderable },
         },
         .run = Render
     });
@@ -77,9 +78,8 @@ void AI(ecs_iter_t *it)
 {
     AIController *aic = ecs_field(it, AIController, 0);
 
-    for (int i = 0; i < it->count; i++) {
-        aic[i].ai_func(it->world, it->entities[i], aic[i].state);
-    }
+    for (int i = 0; i < it->count; i++)
+        aic_to_function[aic[i].aic](it->world, it->entities[i]);
 }
 
 void ApplyPoison(ecs_iter_t *it)
@@ -133,17 +133,27 @@ void DeathCleanup(ecs_iter_t *it)
     Inventory *inv = ecs_field(it, Inventory, 2);
 
     Map *map = ecs_singleton_get_mut(it->world, Map);
+
+    ecs_iter_t qit = { 0 };
+    ecs_query_desc_t desc = { 0 };
     for (int i = 0; i < it->count; i++) {
         if (health[i].val > 0)
             continue;
 
         map_remove_entity(it->world, map, it->entities[i], pos[i].x, pos[i].y);
 
-        if (inv)
-            for (int j = 0; j < inv[i].end; j++) {
-                ecs_remove_pair(it->world, inv[i].items[j], InInventory, it->entities[i]);
-                place_item(it->world, inv[i].items[j], pos[i].x, pos[i].y);
-            }
+        if (inv) {
+            desc.terms[0].id = ecs_pair(InInventory, it->entities[i]);
+            ecs_query_t *q = ecs_query_init(it->world, &desc);
+
+            qit = ecs_query_iter(it->world, q);
+            while (ecs_query_next(&qit))
+                for (int j = 0; j < qit.count; j++) {
+                    ecs_remove_pair(it->world, qit.entities[j], InInventory, it->entities[i]);
+                    place_item(it->world, qit.entities[j], pos[i].x, pos[i].y);
+                }
+            ecs_query_fini(q);
+        }
 
         WieldDescriptor const *wd;
         if ((wd = ecs_get(it->world, it->entities[i], WieldDescriptor)) && wd->main)

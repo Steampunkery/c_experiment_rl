@@ -21,7 +21,7 @@ AbilityBoon AB_SeeInvisible = {
         .type = BOONTYPE_ABILITY,
     },
     .ability_id = &ecs_id(SeeInvisible),
-    .ability_data = &(SeeInvisible) { '\0' },
+    .ability_data = NULL,
 };
 
 ItemBoon IB_Mjolnir = {
@@ -73,8 +73,11 @@ void bestow_boon(ecs_world_t *world, Religious *rel, ecs_entity_t e)
 
 void bestow_ability(ecs_world_t *world, AbilityBoon *boon, ecs_entity_t e)
 {
-    ecs_type_info_t const *info = ecs_get_type_info(world, *boon->ability_id);
-    ecs_set_id(world, e, *boon->ability_id, info->size, boon->ability_data);
+    if (boon->ability_data) {
+        ecs_type_info_t const *info = ecs_get_type_info(world, *boon->ability_id);
+        ecs_set_id(world, e, *boon->ability_id, info->size, boon->ability_data);
+    } else
+        ecs_add_id(world, e, *boon->ability_id);
 }
 
 void bestow_item(ecs_world_t *world, ItemBoon *boon, Position const *pos)

@@ -14,7 +14,6 @@
 extern int X_DIRS[8];
 extern int Y_DIRS[8];
 
-typedef unsigned int MenuChangeCounter;
 typedef unsigned long int ecs_entity_t;
 extern ecs_entity_t g_player_id;
 

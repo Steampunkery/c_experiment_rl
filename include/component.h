@@ -6,18 +6,12 @@
 #include "rlsmenu.h"
 #include "sockui.h"
 
-#define INV_NEW(capacity) { 0, capacity, 0, { 0 } }
 #define GET_NAME_COMP(world, e) ecs_get(world, e, Name)->s
 
 #define COMPONENTS            \
-    COMPONENT(Health)         \
     COMPONENT(Name)           \
-    COMPONENT(Inventory)      \
-    COMPONENT(AIController)   \
     COMPONENT(Religious)      \
-    COMPONENT(SeeInvisible)   \
     COMPONENT(Map)            \
-    COMPONENT(InitiativeData) \
     COMPONENT(MenuNetWrapper) \
     COMPONENT(WieldDescriptor)
 
@@ -26,6 +20,10 @@ COMPONENTS
 #undef COMPONENT
 
 #define META_COMPS                                             \
+    /* NOTE: Cannot register hooks on tags, so Invisible
+     * and SeeInvisible must be *non-empty* structs */         \
+    META_COMP(Invisible, STRUCT, { char dummy; });             \
+    META_COMP(SeeInvisible, STRUCT, { char dummy; });          \
     META_COMP(Position, STRUCT, {                              \
         int32_t x;                                             \
         int32_t y;                                             \
@@ -35,7 +33,6 @@ COMPONENTS
     META_COMP(Value, STRUCT, { float val; });                  \
     META_COMP(Satiation, STRUCT, { float val; });              \
     META_COMP(Glyph, STRUCT, { uint32_t c; });                 \
-    META_COMP(Renderable, STRUCT, { bool should_render; });    \
     META_COMP(WeaponStats, STRUCT, {                           \
         uint8_t n;                                             \
         uint8_t sides;                                         \
@@ -61,6 +58,31 @@ COMPONENTS
     META_COMP(EntityCallbackEffect, STRUCT, {                  \
         EffectCallback ec;                                     \
         uint64_t arg;                                          \
+    });                                                        \
+    META_COMP(Health, STRUCT, {                                \
+        int32_t total;                                         \
+        int32_t val;                                           \
+    });                                                        \
+    META_COMP(Inventory, STRUCT, {                             \
+        uint32_t data_id;                                      \
+        uint32_t capacity;                                     \
+        uint32_t count;                                        \
+    });                                                        \
+    META_COMP(InitiativeData, STRUCT, {                        \
+        int32_t points;                                        \
+        int32_t increment;                                     \
+    });                                                        \
+    META_COMP(AICallback, ENUM, { AIC_LEFT_WALKER,             \
+            AIC_NOTHING, AIC_GREEDY, AIC_PET, AIC_ENEMY,       \
+            AIC_MAX });                                        \
+    META_COMP(AIController, STRUCT, {                          \
+        AICallback aic;                                        \
+    });                                                        \
+    META_COMP(EnemyAIParams, STRUCT, {                         \
+        float health_flee_p;                                   \
+    });                                                        \
+    META_COMP(WieldDescriptor, STRUCT, {                       \
+        ecs_entity_t main;                                     \
     });
 
 #define ECS_META_IMPL EXTERN
@@ -73,7 +95,7 @@ META_COMPS
 typedef struct WeaponStats DamageRoll;
 
 #define TAGS              \
-    TAG(Invisible)        \
+    TAG(Renderable)       \
     TAG(MyTurn)           \
     TAG(Targets)          \
     TAG(HasQuaffEffect)   \
@@ -84,18 +106,12 @@ typedef struct WeaponStats DamageRoll;
     TAG(Fiery)            \
     TAG(OnFire)
 
-typedef int wchar_t;
 typedef struct Religion Religion;
 typedef struct FrameData FrameData;
 
 #define TAG(t) extern ECS_TAG_DECLARE(t);
 TAGS
 #undef TAG
-
-typedef struct Health {
-    int total;
-    int val;
-} Health;
 
 /* Include count for easy (de)serialization. TODO: Consider replacing this with
  * a real wide string type */
@@ -105,38 +121,13 @@ typedef struct Name {
     int32_t count;
 } Name;
 
-typedef struct Inventory {
-    MenuChangeCounter data_id;
-    int capacity;
-    int end;
-    ecs_entity_t items[INVENTORY_MAX];
-} Inventory;
-
-typedef struct Actor {
-    int (*act)(ecs_world_t *world, ecs_entity_t *e);
-} Actor;
-
-typedef struct AIController {
-    void (*ai_func)(ecs_world_t *world, ecs_entity_t e, void *arg);
-    void *state;
-} AIController;
-
 typedef struct Religious {
     Religion *religion;
     int favors_left;
 } Religious;
 
-typedef struct SeeInvisible {
-    char dummy;
-} SeeInvisible;
-
-typedef struct InitiativeData {
-    int points;
-    int increment;
-} InitiativeData;
-
 typedef struct MenuNetWrapper {
-    MenuChangeCounter last_data_id;
+    uint32_t last_data_id;
     uint16_t client_port;
 
     sockui_t sui;
@@ -145,12 +136,7 @@ typedef struct MenuNetWrapper {
     arena a;
 } MenuNetWrapper;
 
-typedef struct WieldDescriptor {
-    ecs_entity_t main;
-} WieldDescriptor;
-
 void register_components(ecs_world_t *world);
-bool inv_full(const Inventory *inv);
+bool inv_full(Inventory const *inv);
 void inv_insert(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
 void inv_delete(ecs_world_t *world, Inventory *inv, ecs_entity_t owner, ecs_entity_t e);
-Inventory inv_new(int capacity);

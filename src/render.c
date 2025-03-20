@@ -12,6 +12,7 @@
 void Render(ecs_iter_t *it)
 {
     Map *map = ecs_singleton_get_mut(it->world, Map);
+    Position const *player_pos = ecs_get(it->world, g_player_id, Position);
     GameVars *vars = it->param;
 
     // Logging
@@ -33,28 +34,28 @@ void Render(ecs_iter_t *it)
     switch(vars->state) {
     case PlayerTurn:
     case RunSystems:
+        curs_set(1);
         mvwaddstr(vars->basewin, 0, 0, get_map_str(map));
 
         // Entities
         while (ecs_query_next(it)) {
             Position *pos = ecs_field(it, Position, 0);
             Glyph *glyph = ecs_field(it, Glyph, 1);
-            Renderable *renderable = ecs_field(it, Renderable, 2);
 
-            for (int i = 0; i < it->count; i++) {
-                if (renderable[i].should_render)
-                    mvwaddch(vars->basewin, pos[i].y, pos[i].x, A_NORMAL | glyph[i].c);
-            }
+            for (int i = 0; i < it->count; i++)
+                mvwaddch(vars->basewin, pos[i].y, pos[i].x, A_NORMAL | glyph[i].c);
         }
 
         Health const *health = ecs_get(it->world, g_player_id, Health);
-        Position const *pos = ecs_get(it->world, g_player_id, Position);
-        mvwprintw(vars->statuswin, 0, 0, "Health: %3d\tPos: (%3d, %3d)", health->val, pos->x, pos->y);
+        mvwprintw(vars->statuswin, 0, 0, "Health: %3d\tPos: (%3d, %3d)", health->val, player_pos->x, player_pos->y);
         wnoutrefresh(vars->statuswin);
+        // TODO: This is probably a hack
+        mvwchgat(vars->basewin, player_pos->y, player_pos->x, 1, A_NORMAL, 1, NULL);
 
         break;
     case GUI:
     case NewGUIFrame:
+        curs_set(0);
         rlsmenu_str str = rlsmenu_get_menu_str(vars->gui);
         if (str.str)
             for (int i = 0; i < str.h; i++)

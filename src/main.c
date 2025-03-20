@@ -1,7 +1,6 @@
 #include "component.h"
 #include "rogue.h"
 
-#include "observer.h"
 #include "map.h"
 #include "player.h"
 #include "monster.h"
@@ -79,7 +78,6 @@ int main(int argc, char **argv)
 
     register_components(world);
     register_systems(world);
-    register_observers(world);
     register_prefabs(world);
     register_serialize(world);
 
@@ -212,25 +210,24 @@ void temp_map_init(ecs_world_t *world, Map *map)
     map_place_entity(world, map, e, 40, 20);
 
     e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 21 }),
-            ecs_value(AIController, { left_walker, NULL }));
+            ecs_value(AIController, { AIC_LEFT_WALKER }));
     map_place_entity(world, map, e, 40, 21);
 
     e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 23 }),
-            ecs_value(AIController, { left_walker, NULL }));
+            ecs_value(AIController, { AIC_LEFT_WALKER }));
     map_place_entity(world, map, e, 40, 23);
 
     e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 22 }),
-            ecs_value(AIController, { greedy_ai, NULL }), { Invisible, NULL });
+            ecs_value(AIController, { AIC_GREEDY }), { ecs_id(Invisible), NULL });
     map_place_entity(world, map, e, 40, 22);
 
-    // Big hack to get around lifetime rules and allocation
-    static EnemyAIParams melee_flee = { .health_flee_p = 0.5 };
     e = ecs_insert(world, { ecs_isa(Goblin), NULL }, ecs_value(Position, { 40, 40 }),
-            ecs_value(AIController, { enemy_ai, &melee_flee}));
+            ecs_value(AIController, { AIC_ENEMY }),
+            ecs_value(EnemyAIParams, { .health_flee_p = 0.5}));
     map_place_entity(world, map, e, 40, 40);
 
     e = ecs_insert(world, { ecs_isa(Dog), NULL }, ecs_value(Position, { 10, 20 }),
-            ecs_value(AIController, { pet_ai, NULL }));
+            ecs_value(AIController, { AIC_PET }));
     map_place_entity(world, map, e, 10, 20);
 
     ecs_world_from_json_file(world, "items.json", NULL);

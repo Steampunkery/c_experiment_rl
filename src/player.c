@@ -21,7 +21,7 @@ ecs_entity_t init_player(ecs_world_t *world)
                 { ecs_isa(Player), NULL },
                 ecs_value(Position, { 10, 10 }),
                 ecs_value(Glyph, { '@' }),
-                ecs_value(Inventory, INV_NEW(10))
+                ecs_value(Inventory, { 0, 10, 0 })
             ),
             .add = ecs_ids(ActionFromSocket),
     });

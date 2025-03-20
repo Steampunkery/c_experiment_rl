@@ -16,12 +16,12 @@ PREFABS
 #undef PREFAB
 
     /* Items */
-    ecs_set(world, Item, Name, { L"PLACEHOLDER" });
+    ecs_set(world, Item, Name, { L"PLACEHOLDER", 11 });
     ecs_set(world, Item, Weight, { 1 });
     ecs_set(world, Item, Value, { 1 });
-    ecs_set(world, Item, Renderable, { true });
+    ecs_add(world, Item, Renderable);
 
-    ecs_set(world, GoldItem, Name, { L"Gold" });
+    ecs_set(world, GoldItem, Name, { L"Gold", 4 });
     ecs_set(world, GoldItem, Weight, { 0.1 });
     ecs_set(world, GoldItem, Stack, { 1 });
     ecs_set(world, GoldItem, Glyph, { L'$' });
@@ -38,21 +38,21 @@ PREFABS
     ecs_set(world, QuaffableItem, Glyph, { L'!' });
 
     /* Monsters */
-    ecs_set(world, Monster, Name, { L"PLACEHOLDER" });
-    ecs_set(world, Monster, AIController, { do_nothing, NULL });
+    ecs_set(world, Monster, Name, { L"PLACEHOLDER", 11 });
+    ecs_set(world, Monster, AIController, { AIC_NOTHING });
     ecs_set(world, Monster, InitiativeData, { 0, 10 });
     ecs_set(world, Monster, Health, { 100, 100 });
-    ecs_set(world, Monster, Renderable, { true });
+    ecs_add(world, Monster, Renderable);
 
     ecs_set(world, Humanoid, WieldDescriptor, { 0 });
 
-    ecs_set(world, Goblin, Name, { L"Goblin" });
-    ecs_set(world, Goblin, Inventory, INV_NEW(10));
+    ecs_set(world, Goblin, Name, { L"Goblin", 6 });
+    ecs_set(world, Goblin, Inventory, { 0, 10, 0 });
     ecs_set(world, Goblin, Glyph, { L'g' });
 
-    ecs_set(world, Player, Name, { L"Player" });
+    ecs_set(world, Player, Name, { L"Player", 6 });
 
-    ecs_set(world, Dog, Name, { L"Dog" });
+    ecs_set(world, Dog, Name, { L"Dog", 3 });
     ecs_set(world, Dog, Health, { 20, 20 });
     ecs_set(world, Dog, Glyph, { L'd' });
 }
